@@ -2,10 +2,16 @@ clc;
 clear all;
 close all;
 
-% matrix A
-A=[-1, 0, 1;
-   2, 1, 1;
-   -1, 2, 0]
+% input from user for now. may need to update.
+A = input('enter an initial matrix');
+b = input('enter an initial vector');
+
+% % % matrix A
+% A=[-1, 0, 1;
+%    2, 1, 1;
+%   -1, 2, 0]
+ %vector b
+% b = [-2; 17; 3]
 
 % size of n x n
 [n, n] = size(A);
@@ -48,9 +54,18 @@ for k = 1:n
     % get factors L and U
     for j = k+1:n
         % set multiplier in L
-        L(j, k) = U(j, k) / U(k, k);
+        L(j, k) = U(j, k) / U(k, k); % flop count
         % for all in row j = for all in row j - multiplier*for all in row k
-        U(j, :) = U(j, :) - L(j, k) * U(k, :);
+        U(j, :) = U(j, :) - L(j, k) * U(k, :)
     end % end gauss elim
 end
-    
+
+% solving for c
+c = [];
+inv(L)
+Pb = P*b
+c = L\Pb
+
+% solving for x
+x = [];
+x = U\c
