@@ -24,10 +24,10 @@ for i=1:number_of_iterations
     %calculate new matrix B
     deltaY = y1 - y;
     deltaX = x1 - x;
-    p1 = B*deltaX;
-    p2 = deltaY - p1;
+    p1 = B*deltaY;
+    p2 = deltaX - p1;
     p3 = p2 * (transpose(deltaX)*B);
-    p4 = transpose(deltaX)*B*deltaX;
+    p4 = transpose(deltaX)*B*deltaY;
     B = B + p3/p4;
 end
 
