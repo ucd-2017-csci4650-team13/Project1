@@ -1,3 +1,8 @@
+%INPUTS:
+% starting point: [1,1]
+% initial matrix: [1 0; 0 1]
+% system of equations: {(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
+% number of iterations: 2
 x_i = input('enter a starting point');
 B = input('enter an initial matrix');
 eqns = input('enter a system of equations');

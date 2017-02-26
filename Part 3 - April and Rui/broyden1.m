@@ -1,3 +1,8 @@
+%INPUTS:
+% starting point: [1,1]
+% initial matrix: [1 0; 0 1]
+% system of equations: {(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
+% number of iterations: 2
 x_i = input('enter a starting point');
 A = input('enter an initial matrix');
 eqns = input('enter a system of equations');
@@ -15,7 +20,7 @@ y1 = transpose(y1);
 for i=1:number_of_iterations
     x = x1;
     y = y1;
-    x1 = x - A\y;
+    x1 = x - A\y
     x_val = num2cell(x1);
     display(x1);
     y1 = cellfun(@(t) t(x_val{:}), eqns);
@@ -28,7 +33,7 @@ for i=1:number_of_iterations
     p2 = deltaY - p1;
     p3 = p2 * transpose(deltaX);
     p4 = transpose(deltaX)*deltaX;
-    A = A + p3/p4;
+    A = A + p3/p4
 end
 
 
