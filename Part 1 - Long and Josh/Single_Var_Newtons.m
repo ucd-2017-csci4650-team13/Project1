@@ -1,45 +1,56 @@
-%TODO, make into function
-syms x;
+% Function to implement Single Variable Newton's Method
+% Receives:
+% infxn = Function in x
+% x0 = initial guess
+% r = real root
+% iterations = number of iterations
+% Calculates error and root multiplicity at the end
+% Returns a list of x values
+
+function xList = Single_Var_Newtons(infxn, x0, r, iterations)
 Tol = 0.00000001;
-%Reading in input as a symbolic variable to use diff
-infxn = input('Give an equation in x: ');
-x = double(input('Enter the initial guess: '));
-r = double(input('Enter the real root: '));
-f = matlabFunction(infxn)  ;            % Equation definition
-fprime = matlabFunction(diff(infxn));   % First-order derivative of f
-%fprime = diff(fxn);                    % Gets the derivative 
+xList = zeros();                        % List of x values calculated for graphing and tables
+xList(1) = x0;                          % Set the first element of the list to the initial guess
+iterativeErrorList = zeros();           % List of ei
 
-i = 0;                                  % Tracks the iteration
-dx = 1;
-fofx = 1;
+f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
+fprime = matlabFunction(diff(infxn));   % First derivative of f
+
+% For analysis
 pastError = 0;
+dx = 1;
 
-fprintf('step       x      ei = |xi - r|  ei/(ei-1)^2\n');
-fprintf('----   ---------   -----------   ----------\n');
-
-while (dx > Tol || abs(fofx) > Tol)   % While difference between xi+1 and xi is above the tolerance
-    fofx = f(x);
-    fpofx = fprime(x);
+if(fprime(r) == 0)
+    fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
+else
+    fprintf('The method will converge quadratically.\n');
+end
+for i = 1:iterations
+    fofx = f(xList(i));
+    fpofx = fprime(xList(i));
+    
     if(fpofx == 0 || abs(fpofx) == Inf)
-        error('The derivative of the function at %12.8f is 0, try another initial guess', x);
+        error('The derivative of the function at %12.8f is 0, try another initial guess', xList);
     end
     
-    xip1 = x - fofx/fpofx;              % Gets the next value of x
-    ei = abs(x - r);                    % Gets forward error of current iteration
-    iterativeError = ei/(pastError)^2;  % Error in relation to previous iteration
+    xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
+    ei = abs(xList(i) - r);                    % Gets forward error of current iteration
+    iterativeErrorList(i) = ei/(pastError)^2;  % Error in relation to previous iteration
     
-    if iterativeError == Inf || iterativeError > 1  % Handles case where result is invalid
-        iterativeError = NaN;
+    % Checks if the difference in x values has converged
+    if (dx <= Tol || abs(fofx) <= Tol)
+        break;
     end
-    
-    fprintf('%3i %12.8f %12.8f   %12.8f %12.8f\n', i, x, ei, iterativeError, xip1);
-    
+    % Checks if error still exists
+    if iterativeErrorList(i) == Inf || iterativeErrorList(i) > 1  % Handles case where result is invalid
+        iterativeErrorList(i) = NaN;
+    end
+        
     % Prep for next iteration of loop
     pastError = ei;
-    x = xip1;
-    i = i + 1;
 end
 
-fprintf('root = %12.8f\n', x);
-calcError(infxn, fprime, r, x);
-fprintf('root %12.8f has m = %12.8f\n', r, getRootMultiplicity(infxn, r));
+fprintf('root = %12.8f\n', xList(i));
+calcError(infxn, fprime, r, xList(i));
+fprintf('root %12.8f has m = %8f\n', r, getRootMultiplicity(infxn, r));
+end

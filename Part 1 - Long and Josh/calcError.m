@@ -10,5 +10,6 @@ function calcError(func, deriv, r, xa)
     backwardErr = abs(subs(func,xa));
     % Remove and return the error magnifcation when integrating code
     fprintf('Real Root = %1.8f \nApproximate Root = %12.8f\nForward Error = %12.8f \nBackward Error = %12.8f\n Error Magnification = %12.8f\n', r, xa, forwardErr, backwardErr, magError);
-    %errorMagnification = magError;
+end
+
 

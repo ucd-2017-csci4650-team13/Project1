@@ -6,3 +6,4 @@ function multiplicity = getRootMultiplicity(fnx, x)
         multiplicity = multiplicity + 1;
         fnx = diff(fnx);            % Get the next derivative
     end
+end
