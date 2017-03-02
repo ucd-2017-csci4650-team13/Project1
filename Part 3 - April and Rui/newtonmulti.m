@@ -1,8 +1,8 @@
 %to test function I used the following inputs (this from the text book page 132):
-% variables -> {'u', 'v'}
-% intial starting point -> [1,2]
-% array of equations -> [(v + (-u^3)), (u^2+v^2+(-1))]
-% [(2u^2 +(?4)u + v^2 + 3w^2 + 6w + 2), (3u^2 +(?12)u + v^2 + 3w^2 + 8), (u^2 + v^2+ (?2)v + 2w^2 + (?5))]
+% variables -> {'u', 'v'} or {'u', 'v', 'w'}
+% intial starting point -> [1,2] or [1,1,1]
+% array of equations -> [[v + (-u^3)], [u^2+v^2+(-1)]] or 
+% [[2*u^2 + v^2 + 3*w^2 + 6*w - 4*u + 2],[3*u^2 - 12*u + v^2 + 3*w^2 + 8], [u^2 + v^2 - 2*v + 2*w^2 - 5]]
 % number of iterations -> 7
 % OUTPUT:
 %  
