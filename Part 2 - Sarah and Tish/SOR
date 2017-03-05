@@ -1,3 +1,19 @@
+% SOR Successive Over-Relaxation Method
+%   This function solves linear equation systems such as Ax=b using SOR 
+%   method (Successive Over-Relaxation).
+%   When the relaxation scalar w = 1, the method used is Gauss-Seidel.
+% Input: A = matrix A 
+%        xold = initial x vector 
+%        b = solution vector
+%        w = relaxation parameter
+%        max_it = maximum iterations
+%        tol = tolerance
+
+% Output: x = solution
+%   error = relative forward error
+%   iter = number of iterations
+%   boolean flag = 1 means divergence, 0 means convergence
+
 clc;
 clear all;
 close all;
@@ -5,9 +21,9 @@ close all;
 % input initialization
 A = [3 1 -1; 
      2 4 1; 
-    -1 2 5]
+    -1 2 5];
 
-[n, n] = size(A)
+[n, n] = size(A);
 
 xold = [0; 0; 0];
 b = [4; 1; 1];
@@ -17,7 +33,10 @@ tol = 0.00000001;
 x = xold;
 diagonalDominant = true;
 
-% TODO: check omega for over/under/Gaussian relaxation
+if (w == 1)
+    fprinf('The relaxation scalar omega = 1. The method used is now Gauss-Seidel')
+end
+   
 % check for diagonally dominant convergence guarantee
 for r=1:n 
     % Sum of the entire row minus the diagonal
@@ -53,34 +72,40 @@ M = D + w*L;
 N = (1 - w)*D - w*U;
 G = M\N;
 % (inv(D+w*L))*(((1-w)*D-w*U)*x0 +w*b)
+datasave = [];
 % begin iteration
 for iter = 1:max_it                         
-        xnew = G
-        RelForError = (norm(xnew-xold))/(norm(xnew))
+        xnew = G;
+        RelForError = (norm(xnew-xold))/(norm(xnew));
         % update approximation
         while (RelForError > tol)
-            xold = xnew
-            M = D + w*L
-            N = (1 - w)*D - w*U
-            G = M\N*xold + w*b
-            xnew = G
-            RelForError = (norm(xnew-xold))/(norm(xnew))
+            xold = xnew;
+            M = D + w*L;
+            N = (1 - w)*D - w*U;
+            G = M\N*xold + w*b;
+            xnew = G;
+            RelForError = (norm(xnew-xold))/(norm(xnew));
             if (RelForError <= tol)
                 break
             end
             count = count+1;
-            x = [x, xnew]
+            x = [x, xnew];
+            datasave = [datasave; count, RelForError, flag];
         end
-        disp(x)
-        
-        if (RelForError > tol) 
-            flag = 1;
-            fprintf('Did not converge')
-        end
-        
-        % for function return
-        x = xnew
-        error = RelForError
-        iter = count
 end
 %end
+    b = b / w % vector b
+    if (RelForError > tol) 
+       flag = 1;
+       fprintf('Did not converge')
+   end
+        
+   % for function return
+   x = xnew;
+   error = RelForError;
+   iter = count;
+        
+fprintf('  iteration    error    flag\n')
+disp(datasave)
+fprintf(' x matrix final\n')
+disp(xnew)
