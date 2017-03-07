@@ -4,18 +4,18 @@
 % # of cols
 % row input csv values?
 
-clc;
-clear all;
-close all;
+function G = Gauss_Elim(A, ans)
 opCount = 0;
-row = 3;
-col = 3;
+%row = 3;
+%col = 3;
 
-n = row
+n = length(A);
+col = length(A);
+row = length(A);
 
 % TODO incorporate user input
-A = [1, 2, -1; 2, 1, -2; -3, 1, 1]
-ans = [3; 3; -6];
+%A = [1, 2, -1; 2, 1, -2; -3, 1, 1]
+%ans = [3; 3; -6];
 solution = [0; 0; 0];
 augA = [A, ans] % tableu form
 
@@ -56,4 +56,4 @@ for x = 1:n
 end
 
 fprintf('Number of Operations = %d', opCount);
-
+end
