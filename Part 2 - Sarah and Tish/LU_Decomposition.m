@@ -12,12 +12,6 @@
 A = input('enter an initial matrix: \n');
 b = input('enter an initial vector: \n');
 
-% test for symmetry
-tf = issymmetric(A)
-if (tf == 0)
-    fprintf('The matrix you have entered is not symmetric and will not factor.');
-end
-
 % % % matrix A
 % A=[-1, 0, 1;
 %    2, 1, 1;
