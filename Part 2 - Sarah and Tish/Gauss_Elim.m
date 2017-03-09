@@ -56,4 +56,21 @@ for x = 1:n
 end
 
 fprintf('Number of Operations = %d', opCount);
+
+% CONDITION NUMBER
+% Conditioning is a property of the matrix
+% Error Magnification factors of the magnitude cond(matrix) are possible
+% Matlab default precision is double
+
+norminf = norm(A, inf);
+norminf_inv = norm(inv(A), inf);
+
+cond_num = norminf * norminf_inv;
+
+iso_exp = floor(log10(cond_num*10))
+fprintf('Error Magnification factors of the magnitude %d are possible.\n', iso_exp);
+fprintf('Since Matlab defaults to double precision this means that \n');
+fprintf('16 - %d = %d correct digits in the solution.\n', iso_exp, 16-iso_exp);
+
 end
+
