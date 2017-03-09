@@ -12,6 +12,8 @@
 A = input('enter an initial matrix: \n');
 b = input('enter an initial vector: \n');
 
+
+
 % % % matrix A
 % A=[-1, 0, 1;
 %    2, 1, 1;
@@ -31,6 +33,7 @@ L = eye(n);
 % identity matrix for pivoting
 P = eye(n);
 
+tic;
 for k = 1:n
     % create matrix pivot
     %  maximum absolute value from the k thru n rows, k column
@@ -83,6 +86,8 @@ x = [];
 x = U\c;
 opCount = opCount + n^2;
 
+toc;
+
 fprintf('Number of Operations = %d\n', opCount);
 fprintf('Lower Triangular = \n');
 L
@@ -92,4 +97,3 @@ fprintf('Permutation Matrix = \n');
 P
 fprintf('Solution vector = \n');
 x
-
