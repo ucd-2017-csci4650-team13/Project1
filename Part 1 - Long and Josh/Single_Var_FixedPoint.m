@@ -5,7 +5,11 @@
 % iterations = number of iterations
 % Returns list of calculated x values
 
-function xList = Single_Var_FixedPoint(infxn, x0, iterations) 
+%function xList = Single_Var_FixedPoint(infxn, x0, iterations)
+syms x;
+infxn = (1 - x)^(1/3);
+x0 = 0.5
+iterations = 10;
 Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
 
@@ -24,4 +28,4 @@ end
 
 xa = xList(i);
 fprintf('Approximate root = %8f\n', xa);
-end
+%end

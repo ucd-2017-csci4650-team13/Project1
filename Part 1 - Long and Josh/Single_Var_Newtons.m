@@ -7,14 +7,15 @@
 % Calculates error and root multiplicity at the end
 % Returns a list of x values
 
-function xList = Single_Var_Newtons(infxn, x0, r, iterations)
-Tol = 0.00000001;
+function xList = Single_Var_Newtons(infxn, x0, r, Tol, iterations)
+%Tol = 0.00000001;
+%syms x;
 xList = zeros();                        % List of x values calculated for graphing and tables
 xList(1) = x0;                          % Set the first element of the list to the initial guess
 iterativeErrorList = zeros();           % List of ei
-
+%infxn = sym(infxn)
 f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
-fprime = matlabFunction(diff(infxn));   % First derivative of f
+fprime = matlabFunction(diff(infxn))   % First derivative of f
 
 % For analysis
 pastError = 0;
