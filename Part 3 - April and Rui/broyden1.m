@@ -1,5 +1,5 @@
 %test equations:
-%{[@(u,v,w)2*u^2 ?4*u + v^2 + 3*w^2 + 6*w + 2], [@(u,v,w)u^2 +v^2 ?2*v+ 2*w^2 ?5], [@(u,v,w)3*u^2 ? 12*u+v^2 + 3*w^2 + 8]}
+%{[@(u,v,w)2*u^2 - 4*u + v^2 + 3*w^2 + 6*w + 2], [@(u,v,w)u^2 +v^2 - 2*v+ 2*w^2 - 5], [@(u,v,w)3*u^2 - 12*u+v^2 + 3*w^2 + 8]}
 % initial matrix: [1 0 0; 0 1 0; 0 0 1]
 %INPUTS:
 % starting point: [1,1]
@@ -32,11 +32,16 @@ y1 = cellfun(@(t) t(x{:}), eqns);
 x1 = x_i;
 x1 = transpose(x1);
 y1 = transpose(y1);
-
+x_values = zeros(1,100);
+y_values = zeros(1,100);
+t = zeros(1,100);
 %begin iteration steps
 for i=1:number_of_iterations
     x = x1;
+    x_values(i) = x(1);
+    y_values(i) = x(2);
     y = y1;
+    tic;
     x1 = x - A\y;
     disp(x1);
     x_val = num2cell(x1);
@@ -46,6 +51,10 @@ for i=1:number_of_iterations
         disp('solution found at x = ')
         disp(vpa(x1,10))
         disp('correct to 10 decimals digits')
+        plot(t)
+        title('Time Complexity Graph')
+        xlabel('Iterations')
+        ylabel('Time to Compute (s)')
         return
     end
     y1 = transpose(y1);
@@ -58,8 +67,9 @@ for i=1:number_of_iterations
     p3 = p2 * transpose(deltaX);
     p4 = transpose(deltaX)*deltaX;
     A = A + p3/p4;
+    t(i) = toc;
 end
-
+plot(t)
 
 
 

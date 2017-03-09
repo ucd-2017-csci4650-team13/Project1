@@ -7,7 +7,7 @@ x_i = input('enter a starting point');
 B = input('enter an initial matrix');
 eqns = input('enter a system of equations');
 
-%error checking for inputs
+%error checking for input
 if(size(B,1) < length(x_i)) 
     disp('the matrix row length must equal the number of variables. Please start again.')
     return
@@ -29,12 +29,13 @@ y1 = cellfun(@(t) t(x{:}), eqns);
 x1 = x_i;
 x1 = transpose(x1);
 y1 = transpose(y1);
-
+t = zeros(1,100);
 %begin iteration steps
 for i=1:number_of_iterations
     x = x1;
     y = y1;
-    x1 = x - B*y
+    tic;
+    x1 = x - B*y;
     x_val = num2cell(x1);
     display(x1);
     y1 = cellfun(@(t) t(x_val{:}), eqns);
@@ -42,6 +43,11 @@ for i=1:number_of_iterations
         disp('solution found at x = ')
         disp(vpa(x1,10))
         disp('correct to 10 decimals digits')
+        plot(t)
+        title('Time Complexity Graph')
+        xlabel('Iterations')
+        ylabel('Time to Compute (s)')
+        drawnow()
         return
     end
     y1 = transpose(y1);
@@ -54,8 +60,9 @@ for i=1:number_of_iterations
     p3 = p2 * (transpose(deltaX)*B);
     p4 = transpose(deltaX)*B*deltaY;
     B = B + p3/p4;
+    t(i) = toc;
 end
-
-
+plot(t)
+drawnow()
 
 

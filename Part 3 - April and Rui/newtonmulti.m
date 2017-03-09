@@ -31,14 +31,16 @@ for i=1:length(variables)
 end
 
 %Ask user for:
-% 1. x = initial starting point,
-% 2. r = the array of equations and the
+% 1. x = initial starting point
+% 2. eqns = the array of equations and the
 % 3. number of iterations to run through
 x = input('enter the initial starting point in [x0, x1] format');
 
-r = input('enter in the array of equations in [(eq1), (eq2), (eq3)] format');
 
-% if(length(v) ~= length(r))
+
+eqns = input('enter in the array of equations in [(eq1), (eq2), (eq3)] format');
+
+% if(length(v) ~= length(eqns))
 %     warning('There must be the same amount of variables as equations')
 %     return
 % end
@@ -46,32 +48,24 @@ r = input('enter in the array of equations in [(eq1), (eq2), (eq3)] format');
 number_of_iterations = input('enter the number of iterations');
 
 %create a Jacobian matrix
-DF = jacobian(r, vars);
-
+DF = jacobian(eqns, vars);
+x_values = zeros(1,100);
+y_values = zeros(1,100);
+t = zeros(1,100);
 %begin iteration steps for calculating the solution of the system
 for i=1:number_of_iterations
     disp('iteration: ');
     disp(i);
     %solve for the solution set, s, to plug into later
-    a = zeros(length(r),1);
+    tic;
+    a = zeros(length(eqns),1);
   
-    for j=1:length(r)
-        answer = subs(r(j), vars, x);
+    for j=1:length(eqns)
+        answer = subs(eqns(j), vars, x);
         a(j) = single(answer);
     end %end of solution set loop
 
-    count = 0;
-    for j=1:length(a)
-      
-        if(a(j) == 0)
-            count = count + 1;
-        end
-    end
-    if(count == 3)
-        disp('a solution is found at x = :')
-        disp(x)
-        return
-    end
+   
     %solve for the constants in the Jacobian matrix
     %find values of Jacobian with starting point
     sol_matrix = subs(DF, vars, x);
@@ -97,20 +91,54 @@ for i=1:number_of_iterations
 
 
     %solve xk = x(k-1) + s --> xk
-    
+    x_values(i) = x(1);
+    y_values(i) = x(2);
     prev_x = x;
-    disp(x)
+    disp(vpa(x,10))
     x = x - sol_set;
-    if((round(sum(prev_x - x), 4)) == 0)
+    if((round(sum(prev_x - x), 16)) == 0)
         disp('solution found at x = ');
-        disp(x)
+        disp(vpa(x))
+        figure
+        subplot(2,1,1)       % add first plot in 2 x 1 grid
+        plot(x_values,y_values)
+        title('Convergence or Divergence')
+
+        subplot(2,1,2)       % add second plot in 2 x 1 grid
+        plot(t)       % plot using + markers
+        title('TIme Complexity')
+        drawnow()
         return
     end
-      
-  
+    diverge = 0; 
+    if(i <= 10)
+        distance(i) = round(sum(prev_x - x));
+        if(i == 10)
+            if(distance(i) > distance(i-9))
+                diverge = 1;
+            end
+        end
+    end
+    
     
     %show the solution at the end of each step[[2*u^2 + v^2 + 3*w^2 + 6*w - 4*u + 2],[3*u^2 - 12*u + v^2 + 3*w^2 + 8], [u^2 + v^2 - 2*v + 2*w^2 - 5]]
-    
+   t(i) = toc;
 end %repeat k times end of iteration loop
 
+if(diverge == 1)
+    disp('the solution appears to be diverging')
+    
+    
+end
+% plot(x_values, y_values)
+% drawnow()
+% plot(t)
+% drawnow()
+figure
+subplot(2,1,1)       % add first plot in 2 x 1 grid
+plot(x_values,y_values)
+title('Convergence or Divergence')
 
+subplot(2,1,2)       % add second plot in 2 x 1 grid
+plot(t)       % plot using + markers
+title('Time Complexity')
