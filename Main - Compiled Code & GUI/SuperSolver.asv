@@ -597,7 +597,7 @@ global rows
 rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
 dataInput = cell(rows, rows + 1)
 %dataInput = cell(2,3)
-global tableInput
+global retrievedData
 figure,
 pos = get(gcf,'position');
 set(gcf,'position',[pos(1:2) [660 120]])
@@ -608,6 +608,7 @@ tableInput = uitable('ColumnWidth',{70},...
     'ColumnEditable',true);
 %gen data because so i do not have to enter it in manually for the
 %example
+retrievedData = get(tableInput,'data')
 %handles.matrixInput = get(tableInput,'data')
 % hObject    handle to linearSysMatrixButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -620,18 +621,27 @@ global tableInput
 global rows
 retrievedData = get(tableInput, 'data')
 %= cell2mat(retrievedData)
-augA = str2double(retrievedData)
-
-sol = Gauss_Elim(augA)
+augA = zeros;
+augB = str2double(retrievedData)
+% for i = 1:rows
+%     for j = 1:rows+1
+%         augA(i,j) = str2double((retrievedData(i,j)))
+%     end
+% end
+aug = augA
+i = augA(1,1)
+sol = Gauss_Elim(augB)
+%g = get(handles.matrixInput, 'data')
 % hObject    handle to linearSysSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-% Naive Gaussian Elimination
+%User Input
 % x,y,z variables specification
 % # of rows
 % # of cols
 % row input csv values?
+
 function solutions = Gauss_Elim(augA)
 opCount = 0;
 %row = 3;
