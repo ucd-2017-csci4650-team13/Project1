@@ -478,6 +478,7 @@ end
 
 % --- Executes on selection change in linearSysListBox.
 function linearSysListBox_Callback(hObject, eventdata, handles)
+
 % hObject    handle to linearSysListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -593,7 +594,6 @@ end
 
 % --- Executes on button press in linearSysMatrixButton.
 function linearSysMatrixButton_Callback(hObject, eventdata, handles)
-global rows 
 rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
 dataInput = cell(rows, rows + 1)
 %dataInput = cell(2,3)
@@ -617,12 +617,29 @@ tableInput = uitable('ColumnWidth',{70},...
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, eventdata, handles)
 global tableInput
-global rows
 retrievedData = get(tableInput, 'data')
 %= cell2mat(retrievedData)
 augA = str2double(retrievedData)
+Tol = str2double(get(handles.linearSysTolEdit, 'string'));
+omega = str2double(get(handles.omegaEdit, 'string'));
+iterations = str2double(get(handles.linearSysIterEdit, 'string'));
+if isnan(Tol) || isnan(iterations)
+    fprintf('Need Input')
+else
+    switch method
+        case 1
+            sol = Gauss_Elim(augA)
+        case 2
+            xList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations);
+        case 3
+        otherwise
+            if isnan(omega)
+                error('need input')
+            end
+            xList = Single_Var_Newtons(infxn, x0, r, Tol, iterations);
+    end
+end
 
-sol = Gauss_Elim(augA)
 % hObject    handle to linearSysSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -706,3 +723,21 @@ fprintf('\n');
 
 fprintf('Number of Operations = %d\n\n', opCount);
 
+
+% --- Executes on button press in linearSysGuessButton.
+function linearSysGuessButton_Callback(hObject, eventdata, handles)
+vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
+dataInput = cell(1, vars)
+
+global initialMatrixInput
+figure,
+pos = get(gcf,'position');
+set(gcf,'position',[pos(1:2) [660 120]])
+%Input table's creation
+initialMatrixInput = uitable('ColumnWidth',{70},...
+    'Position',[30 20 600 80], ...
+    'data',dataInput, ...
+    'ColumnEditable',true);
+% hObject    handle to linearSysGuessButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
