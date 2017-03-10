@@ -333,11 +333,11 @@ dx = 1;
 
 if(fprime(r) == 0)
     fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
-    linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
+    linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent\n';
     set(handles.singleVarOutputText, 'string', linearString);
 else
-    fprintf('The method will converge quadratically.');
-    quadConString = 'The method will converge quadratically.';
+    fprintf('The method will converge quadratically.\n');
+    quadConString = 'The method will converge quadratically.\n';
     set(handles.singleVarOutputText, 'string', quadConString);
 end
 for i = 1:iterations
@@ -438,14 +438,14 @@ function calcError(func, deriv, r, xa, handles)
 %gofr = r^gPow;                              % g(r) will just be r^degree
 %magError = abs(gofr/(r*feval(deriv, r)));   % Calculating the magnitude of error from equation on page 49
 forwardErr = abs(r - xa);
-backwardErr = double(abs(subs(func,xa)));
+backwardErr = abs(subs(func,xa));
 rootM = getRootMultiplicity(func, r)
 realString = 'Real Root = ';
 mString = ' has multiplicity = ';
-fString = 'Forward Error = ';
-bString = 'Backward Error = ';
+forwardString = 'Forward Error = ';
+backwardString = 'Backward Error = ';
 currString = get(handles.singleVarOutputText, 'string');
-newString = sprintf('%s%s%s%s\n%s%s\n%s%s\n', realString, num2str(r), mString, num2str(rootM), fString, num2str(forwardErr), bString, num2str(backwardErr));
+newString = sprintf('%s%s%s%s\n%s%s\n%s%s\n', realString, num2str(r), mString, num2str(rootM), f);
 statusString = combineString(currString, newString);
 set(handles.singleVarOutputText, 'string', statusString);
 % Remove and return the error magnifcation when integrating code
@@ -478,6 +478,8 @@ function bisectionAEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
 
 function bisectionBEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to bisectionBEdit (see GCBO)
