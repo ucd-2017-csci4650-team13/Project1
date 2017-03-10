@@ -281,10 +281,11 @@ else
             if isnan(a) || isnan(b)
                 rangeErrorString='Missing range input';
                 set(handles.singleVarOutputText, 'string', rangeErrorString);
+            else
+                aList = Bisection(infxn, a, b, r, Tol, bandles);
             end
-            aList = Bisection(infxn, a, b, r, Tol);
         case 2
-            aList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations);
+            aList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, bandles);
         otherwise
             aList = Single_Var_Newtons(infxn, x0, r, Tol, iterations, bandles);
     end
@@ -323,6 +324,7 @@ function xList = Single_Var_Newtons(infxn, x0, r, Tol, iterations, handles)
 xList = zeros();                        % List of x values calculated for graphing and tables
 xList(1) = x0;                          % Set the first element of the list to the initial guess
 iterativeErrorList = zeros();           % List of ei
+errorFlag = false;
 %infxn = sym(infxn)
 f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
 fprime = matlabFunction(diff(infxn));   % First derivative of f
@@ -345,7 +347,11 @@ for i = 1:iterations
     fpofx = fprime(xList(i));
     
     if(fpofx == 0 || abs(fpofx) == Inf)
-        error('The derivative of the function at %12.8f is 0, try another initial guess', xList);
+        errorString = ['The derivative of the function at ', num2str(xList(i)), ' is 0, try another initial guess'];
+        set(handles.singleVarOutputText, 'string', errorString);
+        errorFlag = true;
+        %error('The derivative of the function at %12.8f is 0, try another initial guess', xList);
+        break;
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
@@ -367,7 +373,6 @@ end
 
 fprintf('root = %12.8f\n', xList(i));
 %calcError(infxn, fprime, r, xList(i));
-fprintf('root %12.8f has m = %8f\n', r, getRootMultiplicity(infxn, r));
 
 % Fixed Point Iteration
 % Receives:
@@ -376,14 +381,24 @@ fprintf('root %12.8f has m = %8f\n', r, getRootMultiplicity(infxn, r));
 % iterations = number of iterations
 % Returns list of calculated x values
 
-function xList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations)
+function xList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, handles)
 %Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
 
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
-
+fprimeofr = fprime(r);
+if abs(fprimeofr) > 1
+    fprintf('May not converge')
+    set(handles.singleVarOutputText, 'string', 'FPI may not converge')
+elseif fprimeofr == 0
+    fprintf('Quadratically convergent')
+    set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
+else
+    fprintf('Linearly convergent with rate %s', num2str(abs(fprimeofr)))
+    set(handles.singleVarOutputText, 'string', 'Since |g''(r)| < 1, FPI will be quadratically convergent')
+end
 xList(1) = x0;
 % Runs until root approximated or number of iterations reached
 for i = 1:iterations
@@ -403,31 +418,32 @@ fprintf('Approximate root = %8f\n', xa);
 %Input: function handle f; a,b such that f(a)*f(b)<0,
 % and tolerance tol
 %Output: Approximate solution xc
-function xc=Bisection(infxn,a,b,r,tol)
+function cList=Bisection(infxn,a,b,r,tol, bandles)
 syms x;
+cList = zeros;
 f = matlabFunction(infxn);
 if sign(f(a))*sign(f(b)) >= 0
-    error('f(a)f(b)<0 not satisfied!') %ceases execution
-end
-fa=f(a);
-fb=f(b);
-i = 1;
-cList = zeros();
-while (b-a)/2>tol
-    cList(i)=(a+b)/2;
-    fc=f(cList(i));
-    if fc == 0 %c is a solution, done
-        break
+    errorString = 'f(a)f(b)<0 not satisfied!'; %ceases exe  cution
+    set(bandles.singleVarOutputText, 'string', errorString);
+else
+    fa=f(a);
+    %fb=f(b);
+    i = 1;
+    while (b-a)/2>tol
+        cList(i)=(a+b)/2;
+        fc=f(cList(i));
+        if fc == 0 %c is a solution, done
+            break
+        end
+        if sign(fc)*sign(fa)<0 %a and c make the new interval
+            b=cList(i);%fb=fc;
+        else %c and b make the new interval
+            a=cList(i);fa=fc;
+        end
+        i = i + 1;
     end
-    if sign(fc)*sign(fa)<0 %a and c make the new interval
-        b=cList(i);fb=fc;
-    else %c and b make the new interval
-        a=cList(i);fa=fc;
-    end
-    i = i + 1;
+    cList(i)=(a+b)/2; %new midpoint is best estimate
 end
-xc=(a+b)/2; %new midpoint is best estimate
-
 % function to calculate forward error, backward error, and error
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
@@ -440,12 +456,13 @@ function calcError(func, deriv, r, xa, handles)
 forwardErr = abs(r - xa);
 backwardErr = double(abs(subs(func,xa)));
 rootM = getRootMultiplicity(func, r)
+approxStr = 'Approximate Root = ';
 realString = 'Real Root = ';
 mString = ' has multiplicity = ';
 fString = 'Forward Error = ';
 bString = 'Backward Error = ';
 currString = get(handles.singleVarOutputText, 'string');
-newString = sprintf('%s%s%s%s\n%s%s\n%s%s\n', realString, num2str(r), mString, num2str(rootM), fString, num2str(forwardErr), bString, num2str(backwardErr));
+newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa), realString, num2str(r), mString, num2str(rootM), fString, num2str(forwardErr), bString, num2str(backwardErr));
 statusString = combineString(currString, newString);
 set(handles.singleVarOutputText, 'string', statusString);
 % Remove and return the error magnifcation when integrating code
@@ -641,34 +658,38 @@ tableInput = uitable('ColumnWidth',{70},...
 
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, eventdata, handles)
+linHandles = guidata(hObject);
 global tableInput
 global initialMatrixInput
-retrievedData = get(tableInput, 'data')
+retrievedData = get(tableInput, 'data');
 %= cell2mat(retrievedData)
-augA = str2double(retrievedData)
+augA = str2double(retrievedData);
 method = get(handles.linearSysListBox, 'value');
 Tol = str2double(get(handles.linearSysTolEdit, 'string'));
 omega = str2double(get(handles.omegaEdit, 'string'));
 iterations = str2double(get(handles.linearSysIterEdit, 'string'));
+set(handles.lSysOutputText, 'Max', 2);
 if isnan(Tol) || isnan(iterations)
     fprintf('Need Input')
 else
     switch method
         case 1
-            sol = Gauss_Elim(augA)
+            sol = Gauss_Elim(augA, linHandles);
         case 2
-            sol = LU_Decomposition(augA)
+            sol = LU_Decomposition(augA, linHandles)
         case 3
             retrievedGuess = get(initialMatrixInput, 'data')
             P = str2double(retrievedGuess)
-            sol = Jacobi(augA, P)
+            sol = Jacobi(augA, P, linHandles)
         otherwise
             if isnan(omega)
-                error('need input')
+                errStr = 'need input';
+                set(handles.lSysOutputText, 'string', errStr);
+            else
+                retrievedGuess = get(initialMatrixInput, 'data')
+                x0 = str2double(retrievedGuess);
+                sol = SOR(augA, x0, omega, iterations, Tol)
             end
-            retrievedGuess = get(initialMatrixInput, 'data')
-            x0 = str2double(retrievedGuess)
-            sol = SOR(augA, x0, omega, iterations, Tol)
     end
 end
 
@@ -704,7 +725,7 @@ initialMatrixInput = uitable('ColumnWidth',{70},...
 % # of rows
 % # of cols
 % row input csv values?
-function solutions = Gauss_Elim(augA)
+function solutions = Gauss_Elim(augA, handles)
 opCount = 0;
 %row = 3;
 %col = 3;
@@ -734,6 +755,14 @@ iso_exp = floor(log10(cond_num*10));
 fprintf('Error Magnification factors of the magnitude %d are possible.\n', iso_exp);
 fprintf('Since Matlab defaults to double precision this means that \n');
 fprintf('16 - %d = %d correct digits in the solution.\n', iso_exp, 16-iso_exp);
+
+condStr1 = ['Error Magnification factors of the magnitude ', num2str(iso_exp), ' are possible'];
+condStr2 = 'Since Matlab defaults to double precision this means that';
+condStr3 = ['16 - ', num2str(iso_exp),' = ', num2str(16-iso_exp), ' correct digits in the solution.\n'];
+
+condStr = sprintf('%s\n%s\n%s\n', condStr1, condStr2, condStr3);
+
+set(handles.lSysOutputText, 'string', condStr);
 
 tic;
 
@@ -789,8 +818,8 @@ fprintf('Number of Operations = %d\n\n', opCount);
 %           Solution Vector x
 
 % input from user for now. may need to update.
-function solution = LU_Decomposition(augA)
-%augA = [1 0 1; 0 1 1]
+function solution = LU_Decomposition(augA, handles)
+%augA = [1 0 1; 0 1 1, 
 rows = size(augA,1)
 columns = rows + 1
 A = augA
@@ -884,7 +913,7 @@ P
 fprintf('Solution vector = \n');
 solution
 
-function X = Jacobi(augA, P)
+function X = Jacobi(augA, P, handles)
 rows = size(augA,1)
 columns = rows + 1
 A = augA
@@ -926,7 +955,7 @@ for k=1:iterations
     end
 end
 
-function[x, error, iter, flag]  = SOR(augA, x, w, max_it, tol)
+function[x, error, iter, flag]  = SOR(augA, x, w, max_it, tol, handles)
 rows = size(augA,1)
 columns = rows + 1
 A = augA
@@ -1541,3 +1570,26 @@ for i=1:number_of_iterations
 end
 figure, plot(t)
 %>>>>>>> origin/master
+
+
+
+function lSysOutputText_Callback(hObject, eventdata, handles)
+% hObject    handle to lSysOutputText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of lSysOutputText as text
+%        str2double(get(hObject,'String')) returns contents of lSysOutputText as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function lSysOutputText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to lSysOutputText (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
