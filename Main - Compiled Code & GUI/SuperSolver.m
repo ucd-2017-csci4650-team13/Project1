@@ -256,7 +256,6 @@ function singleVarSolveButton_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fprintf('Button runs')
 method = get(handles.singleVarListBox, 'value');
 syms infxn;
 rawfxn = get(handles.singleVarFunctionEdit, 'string');
@@ -617,9 +616,11 @@ tableInput = uitable('ColumnWidth',{70},...
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, eventdata, handles)
 global tableInput
+global initialMatrixInput
 retrievedData = get(tableInput, 'data')
 %= cell2mat(retrievedData)
 augA = str2double(retrievedData)
+method = get(handles.linearSysListBox, 'value');
 Tol = str2double(get(handles.linearSysTolEdit, 'string'));
 omega = str2double(get(handles.omegaEdit, 'string'));
 iterations = str2double(get(handles.linearSysIterEdit, 'string'));
@@ -630,19 +631,44 @@ else
         case 1
             sol = Gauss_Elim(augA)
         case 2
-            xList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations);
+            sol = LU_Decomposition(augA)
         case 3
+            retrievedGuess = get(initialMatrixInput, 'data')
+            P = str2double(retrievedGuess)
+            sol = Jacobi(augA, P)
         otherwise
             if isnan(omega)
                 error('need input')
             end
-            xList = Single_Var_Newtons(infxn, x0, r, Tol, iterations);
+            retrievedGuess = get(initialMatrixInput, 'data')
+            x0 = str2double(retrievedGuess)
+            sol = SOR(augA, x0, omega, iterations, Tol)
     end
 end
+
 
 % hObject    handle to linearSysSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% --- Executes on button press in linearSysGuessButton.
+function linearSysGuessButton_Callback(hObject, eventdata, handles)
+vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
+dataInput = cell(1, vars)
+
+global initialMatrixInput
+figure,
+pos = get(gcf,'position');
+set(gcf,'position',[pos(1:2) [660 120]])
+%Input table's creation
+initialMatrixInput = uitable('ColumnWidth',{70},...
+    'Position',[30 20 600 80], ...
+    'data',dataInput, ...
+    'ColumnEditable',true);
+% hObject    handle to linearSysGuessButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
 
 % Naive Gaussian Elimination
 % x,y,z variables specification
@@ -723,21 +749,265 @@ fprintf('\n');
 
 fprintf('Number of Operations = %d\n\n', opCount);
 
+% This function performs the LU factorization of a symmetric matrix.
+% The function checks for singularity by checking for a zero pivot.
+% The function also does a partial pivoting protocol to prevent swamping.
+% This function also creates a permutation matrix to help with backsolving.
+%   Input: Symmetric matrix and solution vector 
+%   Output: Lower Triangular factor
+%           Upper Triangular factor
+%           Permutation matrix
+%           Solution Vector x
 
-% --- Executes on button press in linearSysGuessButton.
-function linearSysGuessButton_Callback(hObject, eventdata, handles)
-vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
-dataInput = cell(1, vars)
+% input from user for now. may need to update.
+function solution = LU_Decomposition(augA)
+%augA = [1 0 1; 0 1 1]
+rows = size(augA,1)
+columns = rows + 1
+A = augA
+A(:,columns) = []
+%A = input('enter an initial matrix: \n');
+b = augA(:,columns)
+opCount = 0
 
-global initialMatrixInput
-figure,
-pos = get(gcf,'position');
-set(gcf,'position',[pos(1:2) [660 120]])
-%Input table's creation
-initialMatrixInput = uitable('ColumnWidth',{70},...
-    'Position',[30 20 600 80], ...
-    'data',dataInput, ...
-    'ColumnEditable',true);
-% hObject    handle to linearSysGuessButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
+
+% % % matrix A
+% A=[-1, 0, 1;
+%    2, 1, 1;
+%   -1, 2, 0]
+ %vector b
+% b = [-2; 17; 3]
+
+% size of n x n
+[n, n] = size(A);
+
+% init U to A
+U = A;
+
+% init L to identity
+L = eye(n);
+
+% identity matrix for pivoting
+P = eye(n);
+
+tic;
+for k = 1:n
+    % create matrix pivot
+    %  maximum absolute value from the k thru n rows, k column
+    [pivot i] = max(abs(U(k:n,k)));
+    i = i + k-1;
+    opCount = opCount + 1;
+    % if i != k
+    if i ~= k 
+        % interchange rows i and k in U
+        % U(k, :) means (row k, all columns in row k)
+        opCount = opCount + 3;
+        temp = U(k, :);
+        U(k, :) = U(i, :);
+        U(i, :) = temp;
+        % interchange rows i and k in P
+        opCount = opCount + 3;
+        temp = P(k, :);
+        P(k, :) = P(i, :);
+        P(i, :) = temp;
+        
+        % Lower triangular array
+        if k >= 2
+            % (k , 1:k-1) means entire row k and columns 1 thru k-1
+            temp = L(k, 1:k-1);
+            L(k, 1:k-1) = L(i, 1:k-1);
+            L(i, 1:k-1) = temp;
+            opCount = opCount + 3;
+        end %endif
+    end %end outer if ~=
+    % get factors L and U
+    for j = k+1:n
+        % set multiplier in L
+        L(j, k) = U(j, k) / U(k, k); 
+        opCount = opCount + 1;
+        % for all in row j = for all in row j - multiplier*for all in row k
+        U(j, :) = U(j, :) - L(j, k) * U(k, :);
+        opCount = opCount + 1;
+    end % end gauss elim
+end
+
+%solve for c
+c = [];
+inv(L)
+Pb = P*b;
+c = L\Pb;
+opCount = opCount + n^2;
+
+%solve for x
+solution = [];
+solution = U\c;
+opCount = opCount + n^2;
+
+toc;
+
+fprintf('Number of Operations = %d\n', opCount);
+fprintf('Lower Triangular = \n');
+L
+fprintf('Upper Triangular = \n');
+U
+fprintf('Permutation Matrix = \n');
+P
+fprintf('Solution vector = \n');
+solution
+
+function X = Jacobi(augA, P)
+rows = size(augA,1)
+columns = rows + 1
+A = augA
+A(:,columns) = []
+%A = input('enter an initial matrix: \n');
+b = augA(:,columns)
+opCount = 0
+
+X = zeros();
+iterations = 10;
+N = length(b);
+Tol = 0.00000001;
+diagonalDominant = true;
+
+% Check if A is strictly diagonally dominant
+% For each row in matrix A
+for r=1:N
+    rowSum = sumabs(A(r,:)) - abs(A(r, r)); % Sum of the entire row minus the diagonal
+    % Check if diagonal is strictly greater than the row sum
+    if abs(A(r,r)) < rowSum
+        diagonalDominant = false;           % If not, note ite
+        break;
+    end
+end
+
+if diagonalDominant == false
+    fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
+end
+
+for k=1:iterations
+    for j=1:N
+        X(j)=(b(j)-A(j,[1:j-1,j+1:N])*P([1:j-1,j+1:N]))/A(j,j);     % slicing using coefficients to solve for uk and vk
+    end
+    err=abs(norm(X'-P));
+    relerr=err/(norm(X)+eps);
+    P=X';
+    if (err<Tol)||(relerr<Tol)
+        break
+    end
+end
+
+function[x, error, iter, flag]  = SOR(augA, x, w, max_it, tol)
+rows = size(augA,1)
+columns = rows + 1
+A = augA
+A(:,columns) = []
+%A = input('enter an initial matrix: \n');
+b = augA(:,columns)
+
+opCount = 0;
+% input initialization
+% A = [3 1 -1; 
+%      2 4 1; 
+%     -1 2 5];
+% 
+% [n, n] = size(A);
+% 
+% xold = [0; 0; 0];
+% b = [4; 1; 1];
+% w = 1.25;
+% max_it = 2;
+% tol = 0.00000001;
+
+
+x = x';
+diagonalDominant = true;
+
+n = length(A);
+
+if (w == 1)
+    fprintf('The relaxation scalar omega = 1. The method used is now Gauss-Seidel')
+end
+
+tic;
+% check for diagonally dominant convergence guarantee
+for r=1:n 
+    % Sum of the entire row minus the diagonal
+    rowSum = sumabs(A(r,:)) - abs(A(r, r)); 
+    opCount = opCount + 1;
+    % Check if diagonal is strictly greater than the row sum
+    if (abs(A(r,r)) < rowSum)
+    % If not, note it
+        diagonalDominant = false;           
+        break;
+    end
+end
+
+if (diagonalDominant == false)
+% Let user know that convergence is not guaranteed
+    fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
+end
+
+if size(b) ~= size(x)
+    fprintf('The given approximation vector does not match the x vector size\n');
+end
+
+
+flag = 0;    
+iter = 0;
+count = 1;
+
+% matrix splitting 
+% TODO: opCount will be affected by these operations. Need to add.
+D = diag(diag(A));
+L = tril(A-D);
+U = triu(A-D);
+%M = D + w*L;
+%N = (1 - w)*D - w*U;
+%G = M\N;
+G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
+opCount = opCount + 1;
+%fprintf('Iteration 1: ', G);
+datasave = [];
+% begin iteration
+for iter = 1:max_it                         
+        xnew = G;
+        RelForError = (norm(xnew-x))/(norm(xnew));
+        opCount = opCount + 1;
+        % update approximation
+        while (RelForError > tol)
+            x = xnew;
+            opCount = opCount + 1;
+            G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b)
+            xnew = G;
+            opCount = opCount + 1;
+            RelForError = (norm(xnew-x))/(norm(xnew));
+            if (RelForError <= tol)
+                break
+            end
+            count = count+1;
+            x = [x, xnew];
+            datasave = [datasave; count, RelForError, flag];
+        end
+end
+
+    b = b / w % vector b
+    if (RelForError > tol) 
+       flag = 1;
+       fprintf('Did not converge')
+   end
+        
+   % for function return
+   x = xnew;
+   error = RelForError;
+   iter = count;
+
+fprintf('Number of operations: %d\n', opCount);
+toc;
+fprintf('\n');
+
+fprintf('  iteration    error    flag\n')
+
+disp(datasave)
+fprintf(' x final\n')
+disp(xnew)

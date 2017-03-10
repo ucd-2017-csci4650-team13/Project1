@@ -15,7 +15,14 @@
 % Nx1 Matrix of inital guess P
 % Returns a matrix of approximate solutions X
 
-function X = Jacobi(A, b, P)
+function X = Jacobi(augA, P)
+rows = size(augA,1)
+columns = rows + 1
+A = augA
+A(:,columns) = []
+%A = input('enter an initial matrix: \n');
+b = augA(:,columns)
+opCount = 0
 
 X = zeros();
 iterations = 10;
@@ -49,6 +56,5 @@ for k=1:iterations
         break
     end
 end
-X = X';
-end
+X = X'
 

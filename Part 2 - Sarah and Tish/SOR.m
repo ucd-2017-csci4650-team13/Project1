@@ -13,7 +13,13 @@
 %   error = relative forward error
 %   iter = number of iterations
 %   boolean flag = 1 means divergence, 0 means convergence
-function[x, error, iter, flag]  = SOR_(A, xold, b, w, max_it, tol)
+function[x, error, iter, flag]  = SOR(augA, x0, w, max_it, tol)
+rows = size(augA,1)
+columns = rows + 1
+A = augA
+A(:,columns) = []
+%A = input('enter an initial matrix: \n');
+b = augA(:,columns)
 
 opCount = 0;
 % input initialization
@@ -28,7 +34,9 @@ opCount = 0;
 % w = 1.25;
 % max_it = 2;
 % tol = 0.00000001;
-x = xold;
+
+
+x = x0;
 diagonalDominant = true;
 
 n = length(A);
@@ -56,7 +64,7 @@ if (diagonalDominant == false)
     fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
 end
 
-if size(b) ~= size(xold)
+if size(b) ~= size(x0)
     error('The given approximation vector does not match the x vector size');
 end
 
@@ -64,7 +72,6 @@ end
 flag = 0;    
 iter = 0;
 count = 1;
-max_it = 2;
 
 % matrix splitting 
 % TODO: opCount will be affected by these operations. Need to add.
@@ -74,23 +81,23 @@ U = triu(A-D);
 %M = D + w*L;
 %N = (1 - w)*D - w*U;
 %G = M\N;
-G = (inv(D+w*L))*(((1-w)*D-w*U)*xold +w*b);
+G = (inv(D+w*L))*(((1-w)*D-w*U)*x0 +w*b);
 opCount = opCount + 1;
 fprintf('Iteration 1: ', G);
 datasave = [];
 % begin iteration
 for iter = 1:max_it                         
         xnew = G;
-        RelForError = (norm(xnew-xold))/(norm(xnew));
+        RelForError = (norm(xnew-x0))/(norm(xnew));
         opCount = opCount + 1;
         % update approximation
         while (RelForError > tol)
-            xold = xnew;
+            x0 = xnew;
             opCount = opCount + 1;
-            G = (inv(D+w*L))*(((1-w)*D-w*U)*xold +w*b)
+            G = (inv(D+w*L))*(((1-w)*D-w*U)*x0 +w*b)
             xnew = G;
             opCount = opCount + 1;
-            RelForError = (norm(xnew-xold))/(norm(xnew));
+            RelForError = (norm(xnew-x0))/(norm(xnew));
             if (RelForError <= tol)
                 break
             end
