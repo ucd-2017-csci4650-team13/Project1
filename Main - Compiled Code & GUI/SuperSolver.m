@@ -19,7 +19,6 @@ else
 end
 % End initialization code - DO NOT EDIT
 
-
 % --- Executes just before SuperSolver is made visible.
 function SuperSolver_OpeningFcn(hObject, eventdata, handles, varargin)
 % This function has no output args, see OutputFcn.
@@ -1022,16 +1021,6 @@ disp(xnew)
 % -------------------------
 % --- NONLINEAR SYSTEMS ---
 % -------------------------
-
-
-% --- Executes on button press in nonLinearSysSolveButton.
-function togglebutton1_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysSolveButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hint: get(hObject,'Value') returns toggle state of nonLinearSysSolveButton
-
 
 % --- Executes on selection change in nonLinearSysListBox.
 function nonLinearSysListBox_Callback(hObject, eventdata, handles)
