@@ -35,7 +35,7 @@ handles.output = hObject;
 % Settings
 TabFontSize = 8;
 TabNames = {'Single Variable','Linear Systems','Nonlinear Systems'};
-FigWidth = 0.35;
+FigWidth = 0.5;
 
 % Figure resize
 set(handles.SimpleOptimizedTab,'Units','normalized')
@@ -1528,4 +1528,4 @@ for i=1:number_of_iterations
     t(i) = toc;
 end
 figure, plot(t)
-%>>>>>>> origin/master
+
