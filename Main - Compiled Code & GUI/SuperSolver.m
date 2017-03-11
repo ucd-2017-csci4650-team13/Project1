@@ -347,7 +347,7 @@ for i = 1:iterations
     disp(i);
     count(i) = i;
     tic;
-    fofx = f(xList(i))
+    fofx = f(xList(i));
     fpofx = fprime(xList(i));
     
     if(fpofx == 0 || abs(fpofx) == Inf)
@@ -393,8 +393,8 @@ fprintf('root = %12.8f\n', xList(i));
 % Returns list of calculated x values
 
 function xList = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, handles)
-%Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
+count = zeros;          % Iteration array for creating graphs
 
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
@@ -413,15 +413,27 @@ end
 xList(1) = x0;
 % Runs until root approximated or number of iterations reached
 for i = 1:iterations
+    count(i) = i;
+    tic;
     xList(i+1) = f(xList(i));           % Get next x from result of current x
     dx = abs(xList(i+1) - xList(i));    % Tracks amount result changed
     if abs(dx) < Tol
         break;
     end
 end
+time = toc;
+count(i+1) = i+1;
 
 xa = xList(i);
 
+xList
+figure
+plot(count, xList)
+xlabel('Iteration')
+ylabel('g(x)')
+title('Fixed Point Iteration');
+timeString = ['Elapsed time = ', num2str(time)];
+set(handles.singleVarOutputText, 'string', timeString);
 fprintf('Approximate root = %8f\n', xa);
 
 %Program 1.1 Bisection Method
@@ -432,13 +444,16 @@ fprintf('Approximate root = %8f\n', xa);
 function cList=Bisection(infxn,a,b,r,tol, handles)
 syms x;
 cList = zeros;
+count = zeros;          % Iteration array for creating graphs
+
+
 f = matlabFunction(infxn);
+tic;
 if sign(f(a))*sign(f(b)) >= 0
-    errorString = 'f(a)f(b)<0 not satisfied!'; %ceases exe  cution
+    errorString = 'f(a)f(b)<0 not satisfied!'; %ceases execution
     set(handles.singleVarOutputText, 'string', errorString);
 else
     fa=f(a);
-    %fb=f(b);
     i = 1;
     while (b-a)/2>tol
         cList(i)=(a+b)/2;
@@ -452,9 +467,22 @@ else
             a=cList(i);fa=fc;
         end
         i = i + 1;
+        count(i) = i
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
+
 end
+time = toc;
+cList
+
+figure
+plot(count, cList)
+xlabel('Iteration')
+ylabel('c')
+title('Bisection');
+timeString = ['Elapsed time = ', num2str(time)];
+set(handles.singleVarOutputText, 'string', timeString);
+
 % function to calculate forward error, backward error, and error
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
