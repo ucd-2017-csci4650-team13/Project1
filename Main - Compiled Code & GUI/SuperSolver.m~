@@ -382,8 +382,7 @@ xlabel('Iteration')
 ylabel('f(x)')
 title('Newton Method of Single Variable');
 time = toc;
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
+set(handles.singleVarOutputText, 'string', num2string(time));
 fprintf('root = %12.8f\n', xList(i));
 % Fixed Point Iteration
 % Receives:
