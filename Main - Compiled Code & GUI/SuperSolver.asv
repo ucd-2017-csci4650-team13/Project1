@@ -294,12 +294,12 @@ else
     end
     if errFlag == false
         calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), bandles);
+        combinedList = [xList; errList]';
+        f = figure;
+        t = uitable(f);
+        set(t,'Data',combinedList); % Use the set command to change the uitable properties.
+        set(t,'ColumnName',{'xi', 'Error'})
     end
-    combinedList = [xList; errList]';
-    f = figure;
-    t = uitable(f);
-    set(t,'Data',combinedList); % Use the set command to change the uitable properties.
-    set(t,'ColumnName',{'xi', 'Error'})
 end
 
 
