@@ -254,7 +254,7 @@ function newString = combineString(currentString, addedString)
 newString = sprintf('%s\n%s',currentString, addedString);
 
 % --- Executes on button press in singleVarSolveButton.
-function singleVarSolveButton_Callback(hObject, eventdata, handles)
+function singleVarSolveButton_Callback(hObject, ~, handles)
 % hObject    handle to singleVarSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -270,12 +270,15 @@ iterations = str2double(get(handles.singleVarIterationsEdit, 'string'));
 xList = zeros();
 errList = zeros();
 errFlag = false;
-if isnan(r) || isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(iterations)
+if isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(iterations) || abs(r) == Inf
     warning('off', 'symbolic:sym:sym:DeprecateExpressions');
     errorString = 'Missing Input';
     set(handles.singleVarOutputText, 'string', errorString);
     fprintf('Need Input')
 else
+    if isnan(r)
+        r = Inf;
+    end
     bandles = guidata(hObject);
     switch method
         case 1
@@ -295,11 +298,20 @@ else
     if errFlag == false
         calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), bandles);
     end
-    combinedList = [xList; errList]';
-    f = figure;
-    t = uitable(f);
-    set(t,'Data',combinedList); % Use the set command to change the uitable properties.
-    set(t,'ColumnName',{'xi', 'Error'})
+    if r ~= Inf
+        combinedList = [xList; errList]';
+        f = figure;
+        t = uitable(f);
+        set(t,'Data',combinedList); % Use the set command to change the uitable properties.
+        set(t,'ColumnName',{'xi', 'Error'})
+    else
+        combinedList = xList';
+        f = figure;
+        t = uitable(f);
+        set(t,'Data',combinedList); % Use the set command to change the uitable properties.
+        set(t,'ColumnName',{'xi'})
+    end
+
 end
 
 
@@ -365,8 +377,9 @@ for i = 1:iterations
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
-    errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
-    
+    if r ~= Inf
+        errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+    end
     % Checks if the difference in x values has converged
     if (dx <= Tol || abs(fofx) <= Tol)
         break;
@@ -385,7 +398,8 @@ end
 function [xList, errList, errorFlag] = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, handles)
 %Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
-
+errorFlag = false;
+errList = zeros;
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
@@ -401,37 +415,45 @@ else
     set(handles.singleVarOutputText, 'string', 'Since |g''(r)| < 1, FPI will be quadratically convergent')
 end
 xList(1) = x0;
+if r ~= Inf
+    errList(1) = abs(xList(1) - r);
+end
 % Runs until root approximated or number of iterations reached
 for i = 1:iterations
     xList(i+1) = f(xList(i));           % Get next x from result of current x
+    if r ~= Inf
+        errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+    end
     dx = abs(xList(i+1) - xList(i));    % Tracks amount result changed
     if abs(dx) < Tol
         break;
     end
 end
 
-xa = xList(i);
-
-fprintf('Approximate root = %8f\n', xa);
-
 %Program 1.1 Bisection Method
 %Computes approximate solution of f(x)=0
 %Input: function handle f; a,b such that f(a)*f(b)<0,
 % and tolerance tol
 %Output: Approximate solution xc
-function cList=Bisection(infxn,a,b,r,tol, handles)
+function [cList, errList, errorFlag] = Bisection(infxn,a,b,r,tol, handles)
 syms x;
-cList = zeros;
 f = matlabFunction(infxn);
 if sign(f(a))*sign(f(b)) >= 0
     errorString = 'f(a)f(b)<0 not satisfied!'; %ceases exe  cution
     set(handles.singleVarOutputText, 'string', errorString);
+    errorFlag = true;
 else
+    cList = zeros;
+    errList = zeros;
     fa=f(a);
     %fb=f(b);
     i = 1;
     while (b-a)/2>tol
         cList(i)=(a+b)/2;
+        if r ~= Inf
+            errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+        end
+        
         fc=f(cList(i));
         if fc == 0 %c is a solution, done
             break
@@ -441,6 +463,7 @@ else
         else %c and b make the new interval
             a=cList(i);fa=fc;
         end
+
         i = i + 1;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate

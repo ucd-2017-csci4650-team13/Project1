@@ -254,7 +254,7 @@ function newString = combineString(currentString, addedString)
 newString = sprintf('%s\n%s',currentString, addedString);
 
 % --- Executes on button press in singleVarSolveButton.
-function singleVarSolveButton_Callback(hObject, eventdata, handles)
+function singleVarSolveButton_Callback(hObject, ~, handles)
 % hObject    handle to singleVarSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -270,12 +270,15 @@ iterations = str2double(get(handles.singleVarIterationsEdit, 'string'));
 xList = zeros();
 errList = zeros();
 errFlag = false;
-if isnan(r) || isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(iterations)
+if isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(iterations) || abs(r) == Inf
     warning('off', 'symbolic:sym:sym:DeprecateExpressions');
     errorString = 'Missing Input';
     set(handles.singleVarOutputText, 'string', errorString);
     fprintf('Need Input')
 else
+    if isnan(r)
+        r = Inf;
+    end
     bandles = guidata(hObject);
     switch method
         case 1
@@ -294,12 +297,12 @@ else
     end
     if errFlag == false
         calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), bandles);
-        combinedList = [xList; errList]';
-        f = figure;
-        t = uitable(f);
-        set(t,'Data',combinedList); % Use the set command to change the uitable properties.
-        set(t,'ColumnName',{'xi', 'Error'})
     end
+    combinedList = [xList; errList]';
+    f = figure;
+    t = uitable(f);
+    set(t,'Data',combinedList); % Use the set command to change the uitable properties.
+    set(t,'ColumnName',{'xi', 'Error'})
 end
 
 
@@ -365,8 +368,9 @@ for i = 1:iterations
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
-    errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
-    
+    if r ~= Inf
+        errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+    end
     % Checks if the difference in x values has converged
     if (dx <= Tol || abs(fofx) <= Tol)
         break;
@@ -385,7 +389,8 @@ end
 function [xList, errList, errorFlag] = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, handles)
 %Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
-
+errorFlag = false;
+errList = zeros;
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
@@ -401,6 +406,9 @@ else
     set(handles.singleVarOutputText, 'string', 'Since |g''(r)| < 1, FPI will be quadratically convergent')
 end
 xList(1) = x0;
+if r ~= Inf
+    errList(1) = abs(xList(1) - r);
+end
 % Runs until root approximated or number of iterations reached
 for i = 1:iterations
     xList(i+1) = f(xList(i));           % Get next x from result of current x
