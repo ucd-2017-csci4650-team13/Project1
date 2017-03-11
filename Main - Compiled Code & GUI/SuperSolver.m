@@ -418,13 +418,13 @@ fprintf('Approximate root = %8f\n', xa);
 %Input: function handle f; a,b such that f(a)*f(b)<0,
 % and tolerance tol
 %Output: Approximate solution xc
-function cList=Bisection(infxn,a,b,r,tol, bandles)
+function cList=Bisection(infxn,a,b,r,tol, handles)
 syms x;
 cList = zeros;
 f = matlabFunction(infxn);
 if sign(f(a))*sign(f(b)) >= 0
     errorString = 'f(a)f(b)<0 not satisfied!'; %ceases exe  cution
-    set(bandles.singleVarOutputText, 'string', errorString);
+    set(handles.singleVarOutputText, 'string', errorString);
 else
     fa=f(a);
     %fb=f(b);
@@ -455,7 +455,7 @@ function calcError(func, deriv, r, xa, handles)
 %magError = abs(gofr/(r*feval(deriv, r)));   % Calculating the magnitude of error from equation on page 49
 forwardErr = abs(r - xa);
 backwardErr = double(abs(subs(func,xa)));
-rootM = getRootMultiplicity(func, r)
+rootM = getRootMultiplicity(func, r);
 approxStr = 'Approximate Root = ';
 realString = 'Real Root = ';
 mString = ' has multiplicity = ';
@@ -635,19 +635,24 @@ end
 
 
 % --- Executes on button press in linearSysMatrixButton.
-function linearSysMatrixButton_Callback(hObject, eventdata, handles)
-rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
-dataInput = cell(rows, rows + 1)
-%dataInput = cell(2,3)
+function linearSysMatrixButton_Callback(~, ~, handles)
 global tableInput
-figure,
-pos = get(gcf,'position');
-set(gcf,'position',[pos(1:2) [660 120]])
-%Input table's creation
-tableInput = uitable('ColumnWidth',{70},...
-    'Position',[30 20 600 80], ...
-    'data',dataInput, ...
-    'ColumnEditable',true);
+rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'));
+
+if isnan(rows) || rows < 1 || rows == Inf
+    errorString = 'Invalid variable amount';
+    set(handles.lSysOutputText, 'string', errorString);
+else
+    dataInput = cell(rows, rows + 1);
+    figure,
+    pos = get(gcf,'position');
+    set(gcf,'position',[pos(1:2) [660 120]])
+    %Input table's creation
+    tableInput = uitable('ColumnWidth',{50},...
+        'Position',[30 20 600 80], ...
+        'data',dataInput, ...
+        'ColumnEditable',true);
+end
 %gen data because so i do not have to enter it in manually for the
 %example
 %handles.matrixInput = get(tableInput,'data')
@@ -657,18 +662,19 @@ tableInput = uitable('ColumnWidth',{70},...
 
 
 % --- Executes on button press in linearSysSolveButton.
-function linearSysSolveButton_Callback(hObject, eventdata, handles)
+function linearSysSolveButton_Callback(hObject, ~, handles)
 linHandles = guidata(hObject);
 global tableInput
 global initialMatrixInput
+
 retrievedData = get(tableInput, 'data');
-%= cell2mat(retrievedData)
 augA = str2double(retrievedData);
 method = get(handles.linearSysListBox, 'value');
 Tol = str2double(get(handles.linearSysTolEdit, 'string'));
 omega = str2double(get(handles.omegaEdit, 'string'));
 iterations = str2double(get(handles.linearSysIterEdit, 'string'));
 set(handles.lSysOutputText, 'Max', 2);
+
 if isnan(Tol) || isnan(iterations)
     fprintf('Need Input')
 else
@@ -688,7 +694,7 @@ else
             else
                 retrievedGuess = get(initialMatrixInput, 'data')
                 x0 = str2double(retrievedGuess);
-                sol = SOR(augA, x0, omega, iterations, Tol)
+                sol = SOR(augA, x0, omega, iterations, Tol, linHandles)
             end
     end
 end
@@ -700,6 +706,7 @@ end
 
 % --- Executes on button press in linearSysGuessButton.
 function linearSysGuessButton_Callback(hObject, eventdata, handles)
+set(handles.lSysOutputText, 'Max', 2);
 vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
 dataInput = cell(1, vars)
 
@@ -740,12 +747,12 @@ opCount = 0;
 %A = [1, 2, -1; 2, 1, -2; -3, 1, 1]
 %ans = [3; 3; -6];
 solutions = zeros;
-n = length(augA) - 1
-row = length(augA) - 1
-col = row + 1
+n = size(augA, 1);
+row = size(augA, 1);
+col = row + 1;
 
-A = augA
-A(:,col) = []
+A = augA;
+A(:,col) = [];
 norminf = norm(A, inf);
 norminf_inv = norm(inv(A), inf);
 
@@ -758,7 +765,7 @@ fprintf('16 - %d = %d correct digits in the solution.\n', iso_exp, 16-iso_exp);
 
 condStr1 = ['Error Magnification factors of the magnitude ', num2str(iso_exp), ' are possible'];
 condStr2 = 'Since Matlab defaults to double precision this means that';
-condStr3 = ['16 - ', num2str(iso_exp),' = ', num2str(16-iso_exp), ' correct digits in the solution.\n'];
+condStr3 = ['16 - ', num2str(iso_exp),' = ', num2str(16-iso_exp), ' correct digits in the solution.'];
 
 condStr = sprintf('%s\n%s\n%s\n', condStr1, condStr2, condStr3);
 
@@ -789,7 +796,7 @@ end
 
 % Backsolving
 for q = n:-1 : 1
-    solutions(q) = augA(q, row + 1)
+    solutions(q) = augA(q, row + 1);
     for u = q+1:n
         opCount = opCount + 1;
         solutions(q) = solutions(q) - augA(q,u)*solutions(u);
@@ -802,10 +809,15 @@ for x = 1:n
     fprintf('x%d = %f\n', x, solutions(x));
 end
 fprintf('\n');
-toc;
+time = toc;
 fprintf('\n');
 
-fprintf('Number of Operations = %d\n\n', opCount);
+opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
+timeString = ['Elapsed Time = ', num2str(time)];
+newString = combineString(condStr, opsString);
+newString = combineString(newString, timeString);
+set(handles.lSysOutputText, 'string', newString);
+%fprintf('Number of Operations = %d\n\n', opCount);
 
 % This function performs the LU factorization of a symmetric matrix.
 % The function checks for singularity by checking for a zero pivot.
@@ -820,13 +832,13 @@ fprintf('Number of Operations = %d\n\n', opCount);
 % input from user for now. may need to update.
 function solution = LU_Decomposition(augA, handles)
 %augA = [1 0 1; 0 1 1, 
-rows = size(augA,1)
-columns = rows + 1
-A = augA
-A(:,columns) = []
+rows = size(augA,1);
+columns = rows + 1;
+A = augA;
+A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
-b = augA(:,columns)
-opCount = 0
+b = augA(:,columns);
+opCount = 0;
 
 
 % % % matrix A
@@ -901,7 +913,12 @@ solution = [];
 solution = U\c;
 opCount = opCount + n^2;
 
-toc;
+time = toc;
+
+opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
+timeString = ['Elapsed Time = ', num2str(time)];
+newString = combineString(opsString, timeString);
+set(handles.lSysOutputText, 'string', newString);
 
 fprintf('Number of Operations = %d\n', opCount);
 fprintf('Lower Triangular = \n');
@@ -914,13 +931,14 @@ fprintf('Solution vector = \n');
 solution
 
 function X = Jacobi(augA, P, handles)
-rows = size(augA,1)
-columns = rows + 1
-A = augA
-A(:,columns) = []
+rows = size(augA,1);
+columns = rows + 1;
+A = augA;
+A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
-b = augA(:,columns)
-opCount = 0
+b = augA(:,columns);
+opCount = 0;
+convergenceStr = '';
 
 X = zeros();
 iterations = 10;
@@ -941,7 +959,11 @@ end
 
 if diagonalDominant == false
     fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
+    convergenceStr = 'Matrix A is not strictly diagonal dominant and may not converge.';
+    set(handles.lSysOutputText, 'string', convergenceStr);
 end
+
+tic;
 
 for k=1:iterations
     for j=1:N
@@ -955,15 +977,24 @@ for k=1:iterations
     end
 end
 
+time = toc;
+
+opsString = ['Number of Operations = ', num2str(opCount)];
+timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
+newString = combineString(opsString, timeString);
+set(handles.lSysOutputText, 'string', newString);
+
 function[x, error, iter, flag]  = SOR(augA, x, w, max_it, tol, handles)
-rows = size(augA,1)
-columns = rows + 1
-A = augA
-A(:,columns) = []
+rows = size(augA,1);
+columns = rows + 1;
+A = augA;
+A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
-b = augA(:,columns)
+b = augA(:,columns);
 
 opCount = 0;
+
+convStr = '';
 % input initialization
 % A = [3 1 -1; 
 %      2 4 1; 
@@ -985,6 +1016,8 @@ n = length(A);
 
 if (w == 1)
     fprintf('The relaxation scalar omega = 1. The method used is now Gauss-Seidel')
+    GSString = 'The relaxation scalar omega = 1. The method used is now Gauss-Seidel';
+    set(handles.lSysOutputText, 'string', GSString);
 end
 
 tic;
@@ -1004,15 +1037,19 @@ end
 if (diagonalDominant == false)
 % Let user know that convergence is not guaranteed
     fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
+    convStr = 'Matrix A is not strictly diagonal dominant and may not converge';
+    newStr = combineString(GSString, convStr);
+    set(handles.lSysOutputText, 'string', newStr);
 end
 
 if size(b) ~= size(x)
     fprintf('The given approximation vector does not match the x vector size\n');
+    errStr = 'The given approximation vector does not match the x vector size';
+    set(handles.lSysOutputText, 'string', errStr);
 end
 
 
 flag = 0;    
-iter = 0;
 count = 1;
 
 % matrix splitting 
@@ -1049,19 +1086,28 @@ for iter = 1:max_it
         end
 end
 
-    b = b / w % vector b
-    if (RelForError > tol) 
-       flag = 1;
-       fprintf('Did not converge')
-   end
-        
-   % for function return
-   x = xnew;
-   error = RelForError;
-   iter = count;
+b = b / w; % vector b
+if (RelForError > tol) 
+   flag = 1;
+   fprintf('Did not converge')
+   convStr = 'Did not converge';
+   set(handles.lSysOutputText, 'string', convStr);
+end
+
+% for function return
+x = xnew;
+error = RelForError;
+iter = count;
 
 fprintf('Number of operations: %d\n', opCount);
-toc;
+time = toc;
+
+opsStr = ['Number of Operations = ', num2str(opCount)];
+timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
+newStr = combine(convStr, opsStr);
+newStr = combineString(newStr, timeString);
+set(handles.lSysOutputText, 'string', newStr);
+
 fprintf('\n');
 
 fprintf('  iteration    error    flag\n')
