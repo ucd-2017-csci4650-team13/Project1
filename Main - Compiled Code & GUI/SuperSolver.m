@@ -1234,7 +1234,7 @@ function nonLinearMultiVarSolveButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of nonLinearMultiVarSolveButton
-
+method = get(handles.singleVarListBox, 'value');
 %get variable list
 variables = get(handles.nonLinearSysVarsListEdit, 'string');
 ca = {};
@@ -1379,28 +1379,55 @@ function nonLinearSysBroyden1SolveButton_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of nonLinearSysBroyden1SolveButton
 x_i = str2num(get(handles.nonLinearSysBroydenGuessEdit, 'string'));
-disp(x_i);
-eqns = get(handles.nonLinearSysBroydenEqnListEdit, 'string');
-eqns = strsplit(eqns, ';');
-for i=1:length(eqns)
-    eqns{i} = strtrim(eqns{i});
-    eqns{i} = str2func(eqns{i});
-end
-disp(eqns);
-A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
-disp(A);
-number_of_iterations = str2double(get(handles.nonLinearSysBroydenIterationsEdit, 'string'));
-disp(number_of_iterations);
-Broyden_1_Method(x_i, eqns, A, number_of_iterations);
 
-function Broyden_1_Method(x_i, eqns, A, number_of_iterations)
+
+variables = get(handles.nonLinearSysVarsListEdit, 'string');
+ca = {};
+
+%remove white spaces and convert string to char array
+variables(variables==' ') = [];
+variables = char(variables); 
+
+%load each variable into a cell
+for i=1:length(variables)
+    ca{i} = variables(i); 
+end
+
+
+%convert each char to sym type
+vars = cell2sym(ca);
+for i=1:length(variables)
+     syms(variables(i))
+end
+
+eqns = get(handles.nonLinearSysBroydenEqnListEdit, 'string');
+% eqns = strsplit(eqns, ';');
+% for i=1:length(eqns)
+%     eqns{i} = strtrim(eqns{i});
+%     eqns{i} = str2func(eqns{i});
+% end
+eqns = sym(eqns);
+
+A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
+
+number_of_iterations = str2double(get(handles.nonLinearSysBroydenIterationsEdit, 'string'));
+
+Broyden_1_Method(x_i, vars, eqns, A, number_of_iterations);
+
+function Broyden_1_Method(x_i, vars, eqns, A, number_of_iterations)
 %evaluate the functions at x
 %{(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
-x = num2cell(x_i);
-y1 = cellfun(@(t) t(x{:}), eqns);
+
+%y1 = cellfun(@(t) t(x{:}), eqns);
+y1 = zeros(length(eqns),1);
+  
+for j=1:length(eqns)
+    answer = subs(eqns(j), vars, x_i);
+    y1(j) = single(answer);
+end %end of solution set loop
 x1 = x_i;
 x1 = transpose(x1);
-y1 = transpose(y1);
+% y1 = transpose(y1);
 x_values = zeros(1,100);
 y_values = zeros(1,100);
 t = zeros(1,100);
@@ -1413,9 +1440,12 @@ for i=1:number_of_iterations
     tic;
     x1 = x - A\y;
     disp(x1);
-    x_val = num2cell(x1);
-    
-    y1 = cellfun(@(t) t(x_val{:}), eqns);
+    %x_val = num2cell(x1);
+    y1 = zeros(length(eqns),1);
+    for j=1:length(eqns)
+        answer = subs(eqns(j), vars, transpose(x1));
+        y1(j) = single(answer);
+    end %end of solution set loop
     if(round(y1, 10) == 0)
         disp('solution found at x = ')
         disp(vpa(x1,10))
@@ -1426,7 +1456,7 @@ for i=1:number_of_iterations
         ylabel('Time to Compute (s)')
         return
     end
-    y1 = transpose(y1);
+%     y1 = transpose(y1);
     
     %calculate new matrix A
     deltaY = y1 - y;
@@ -1528,4 +1558,3 @@ for i=1:number_of_iterations
     t(i) = toc;
 end
 figure, plot(t)
-
