@@ -374,12 +374,10 @@ for i = 1:iterations
     pastError = ei;
 end
 count(i+1) = i+1;
-xList
 figure
-%subplot(2, 2, 1)
-plot(count, xList)
-xlabel('Iteration')
-ylabel('f(x)')
+plot(count, xList);
+xlabel('Iteration');
+ylabel('f(x)');
 title('Newton Method of Single Variable');
 time = toc;
 timeString = ['Elapsed time = ', num2str(time)];
@@ -428,8 +426,8 @@ xa = xList(i);
 
 xList
 figure
-plot(count, xList)
-xlabel('Iteration')
+plot(count, xList);
+xlabel('Iteration');
 ylabel('g(x)')
 title('Fixed Point Iteration');
 timeString = ['Elapsed time = ', num2str(time)];
@@ -455,7 +453,6 @@ if sign(f(a))*sign(f(b)) >= 0
 else
     fa=f(a);
     i = 1;
-    count(i) = i;
     while (b-a)/2>tol
         cList(i)=(a+b)/2;
         fc=f(cList(i));
@@ -471,8 +468,19 @@ else
         count(i) = i;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
-    
+
 end
+time = toc;
+cList
+
+figure
+plot(count, cList);
+xlabel('Iteration');
+ylabel('c');
+title('Bisection');
+timeString = ['Elapsed time = ', num2str(time)];
+set(handles.singleVarOutputText, 'string', timeString);
+
 % function to calculate forward error, backward error, and error
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the

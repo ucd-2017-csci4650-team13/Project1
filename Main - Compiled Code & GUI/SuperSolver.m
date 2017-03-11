@@ -374,12 +374,10 @@ for i = 1:iterations
     pastError = ei;
 end
 count(i+1) = i+1;
-xList
 figure
-%subplot(2, 2, 1)
-plot(count, xList)
-xlabel('Iteration')
-ylabel('f(x)')
+plot(count, xList);
+xlabel('Iteration');
+ylabel('f(x)');
 title('Newton Method of Single Variable');
 time = toc;
 timeString = ['Elapsed time = ', num2str(time)];
@@ -426,11 +424,10 @@ count(i+1) = i+1;
 
 xa = xList(i);
 
-xList
 figure
-plot(count, xList)
-xlabel('Iteration')
-ylabel('g(x)')
+plot(count, xList);
+xlabel('Iteration');
+ylabel('g(x)');
 title('Fixed Point Iteration');
 timeString = ['Elapsed time = ', num2str(time)];
 set(handles.singleVarOutputText, 'string', timeString);
@@ -467,18 +464,17 @@ else
             a=cList(i);fa=fc;
         end
         i = i + 1;
-        count(i) = i
+        count(i) = i;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
 
 end
 time = toc;
-cList
 
 figure
-plot(count, cList)
-xlabel('Iteration')
-ylabel('c')
+plot(count, cList);
+xlabel('Iteration');
+ylabel('c');
 title('Bisection');
 timeString = ['Elapsed time = ', num2str(time)];
 set(handles.singleVarOutputText, 'string', timeString);
