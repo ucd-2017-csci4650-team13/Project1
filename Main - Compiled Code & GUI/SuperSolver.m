@@ -327,6 +327,8 @@ errorFlag = false;                      % divergence flag
 f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
 fprime = matlabFunction(diff(infxn));   % First derivative of f
 count = zeros();
+difference = zeros();
+ticks = 0;
 
 % For analysis
 pastError = 0;
@@ -343,8 +345,7 @@ else
 end
 
 for i = 1:iterations
-    disp('iteration: ');
-    disp(i);
+    
     count(i) = i;
     tic;
     fofx = f(xList(i));
@@ -358,6 +359,15 @@ for i = 1:iterations
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
+    difference(i) = xList(i+1) - xList(i)
+    if (difference(i) > 2 && difference(i) < difference(i + 1))
+      ticks = ticks + 1;  
+    end
+    
+    if (ticks > 5)
+        fprintf('The answer is likely diverging.\n');
+    end
+    
     ei = abs(xList(i) - r);                    % Gets forward error of current iteration
     iterativeErrorList(i) = ei/(pastError)^2;  % Error in relation to previous iteration
     
