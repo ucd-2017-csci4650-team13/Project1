@@ -47,9 +47,9 @@ handles = TabsFun(handles,TabFontSize,TabNames);
 
 % Update handles structure
 %handles.matrixInput = {}
-handles.testvar = 0;
 guidata(hObject, handles);
-
+set(handles.linearSysGuessButton, 'enable', 'off');
+set(handles.omegaEdit, 'enable', 'off');
 % UIWAIT makes SuperSolver wait for user response (see UIRESUME)
 % uiwait(handles.SimpleOptimizedTab);
 
@@ -59,7 +59,8 @@ function handles = TabsFun(handles,TabFontSize,TabNames)
 % Set the colors indicating a selected/unselected tab
 handles.selectedTabColor=get(handles.tab1Panel,'BackgroundColor');
 handles.unselectedTabColor=handles.selectedTabColor-0.1;
-
+handles.matrixFigure = {};
+handles.guessFigure = {};
 % Create Tabs
 TabsNumber = length(TabNames);
 handles.TabsNumber = TabsNumber;
@@ -141,6 +142,15 @@ function singleVarListBox_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+method = get(handles.singleVarListBox, 'value');
+switch method
+    case 1
+        set(handles.bisectionAEdit, 'enable', 'on');
+        set(handles.bisectionBEdit, 'enable', 'on');
+    otherwise
+        set(handles.bisectionAEdit, 'enable', 'off');
+        set(handles.bisectionBEdit, 'enable', 'off');
+end
 
 % Hints: contents = cellstr(get(hObject,'String')) returns singleVarListBox contents as cell array
 %        contents{get(hObject,'Value')} returns selected item from singleVarListBox
@@ -203,8 +213,6 @@ function singleVarIterationsEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function singleVarx0Edit_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarx0Edit (see GCBO)
@@ -300,6 +308,7 @@ else
     end
     if r ~= Inf
         combinedList = [xList; errList]';
+        % Implement new 'rowHeader' in 'scrollPane'
         f = figure;
         t = uitable(f);
         set(t,'Data',combinedList); % Use the set command to change the uitable properties.
@@ -308,14 +317,14 @@ else
         combinedList = xList';
         f = figure;
         t = uitable(f);
-        set(t,'Data',combinedList); % Use the set command to change the uitable properties.
+        set(t,'Data',combinedList);
         set(t,'ColumnName',{'xi'})
     end
-
+    
 end
 
 
-function singleVarRootEdit_Callback(hObject, eventdata, handles)
+function singleVarRootEdit_Callback(~, ~, handles)
 % hObject    handle to singleVarRootEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -325,7 +334,7 @@ function singleVarRootEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function singleVarRootEdit_CreateFcn(hObject, eventdata, handles)
+function singleVarRootEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to singleVarRootEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -436,10 +445,9 @@ end
 % and tolerance tol
 %Output: Approximate solution xc
 function [cList, errList, errorFlag] = Bisection(infxn,a,b,r,tol, handles)
-syms x;
 f = matlabFunction(infxn);
 if sign(f(a))*sign(f(b)) >= 0
-    errorString = 'f(a)f(b)<0 not satisfied!'; %ceases exe  cution
+    errorString = 'f(a)f(b)<0, Intermediate Value Theorem not satisfied!'; %ceases exe  cution
     set(handles.singleVarOutputText, 'string', errorString);
     errorFlag = true;
 else
@@ -463,7 +471,7 @@ else
         else %c and b make the new interval
             a=cList(i);fa=fc;
         end
-
+        
         i = i + 1;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
@@ -477,29 +485,35 @@ function calcError(func, deriv, r, xa, handles)
 %gPow = feval(symengine, 'degree', func);    % Gets g(x) from highest degree of the equations, func has to be symbolic for degree() to work
 %gofr = r^gPow;                              % g(r) will just be r^degree
 %magError = abs(gofr/(r*feval(deriv, r)));   % Calculating the magnitude of error from equation on page 49
-forwardErr = abs(r - xa);
 backwardErr = double(abs(subs(func,xa)));
-rootM = getRootMultiplicity(func, r);
 approxStr = 'Approximate Root = ';
-realString = 'Real Root = ';
-mString = ' has multiplicity = ';
-fString = 'Forward Error = ';
+if r ~= Inf
+    forwardErr = abs(r - xa);
+    rootM = getRootMultiplicity(func, r);
+    realString = 'Real Root = ';
+    mString = ' has multiplicity = ';
+    fString = 'Forward Error = ';
+    forwardStr = sprintf('%s%s%s%s\n%s%s', realString, num2str(r, '%20.10f'), mString, num2str(rootM, '%20.10f'), fString, num2str(forwardErr, '%20.10f'));
+end
+
 bString = 'Backward Error = ';
 currString = get(handles.singleVarOutputText, 'string');
-newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), realString, num2str(r, '%20.10f'), mString, num2str(rootM, '%20.10f'), fString, num2str(forwardErr, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
+newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
 statusString = combineString(currString, newString);
+if r ~= Inf
+    statusString = combineString(statusString, forwardStr);
+end
 set(handles.singleVarOutputText, 'string', statusString);
 % Remove and return the error magnifcation when integrating code
-fprintf('Real Root = %1.8f \nApproximate Root = %12.8f\nForward Error = %12.8f \nBackward Error = %12.8f\nError Magnification = %12.8f\n', r, xa, forwardErr, backwardErr,1);
 
 function multiplicity = getRootMultiplicity(fnx, x)
-    multiplicity = 0;
-    while(subs(fnx, x) == 0)        % Runs when fn(0) = 0
-        multiplicity = multiplicity + 1;
-        fnx = diff(fnx);            % Get the next derivative
-    end
+multiplicity = 0;
+while(subs(fnx, x) == 0)        % Runs when fn(0) = 0
+    multiplicity = multiplicity + 1;
+    fnx = diff(fnx);            % Get the next derivative
+end
 
-function bisectionAEdit_Callback(hObject, eventdata, handles)
+function bisectionAEdit_Callback(~, ~, ~)
 % hObject    handle to bisectionAEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -509,7 +523,7 @@ function bisectionAEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function bisectionAEdit_CreateFcn(hObject, eventdata, handles)
+function bisectionAEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to bisectionAEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -543,8 +557,22 @@ end
 
 
 % --- Executes on selection change in linearSysListBox.
-function linearSysListBox_Callback(hObject, eventdata, handles)
-
+function linearSysListBox_Callback(~, ~, handles)
+method = get(handles.linearSysListBox, 'value');
+switch method
+    case 1
+        set(handles.linearSysGuessButton, 'enable', 'off');
+        set(handles.omegaEdit, 'enable', 'off');
+    case 2
+        set(handles.linearSysGuessButton, 'enable', 'off');
+        set(handles.omegaEdit, 'enable', 'off');
+    case 3
+        set(handles.linearSysGuessButton, 'enable', 'on');
+        set(handles.omegaEdit, 'enable', 'off');
+    otherwise
+        set(handles.linearSysGuessButton, 'enable', 'on');
+        set(handles.omegaEdit, 'enable', 'on');
+end
 % hObject    handle to linearSysListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -561,6 +589,7 @@ function linearSysListBox_CreateFcn(hObject, eventdata, handles)
 
 % Hint: listbox controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
+
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
@@ -568,6 +597,7 @@ end
 
 
 function linearSysNumOfVarEdit_Callback(hObject, eventdata, handles)
+
 % hObject    handle to linearSysNumOfVarEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -668,13 +698,19 @@ if isnan(rows) || rows < 1 || rows == Inf
     set(handles.lSysOutputText, 'string', errorString);
 else
     dataInput = cell(rows, rows + 1);
-    figure,
+    columnNames = strings;
+    for i = 1:rows
+        columnNames(i) = ['x',num2str(i)];
+    end
+    columnNames(i+1) = 'b';
+    handles.matrixFigure = figure,
     pos = get(gcf,'position');
     set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
     tableInput = uitable('ColumnWidth',{50},...
         'Position',[30 20 600 80], ...
         'data',dataInput, ...
+        'columnName', columnNames,...
         'ColumnEditable',true);
 end
 %gen data because so i do not have to enter it in manually for the
@@ -688,8 +724,8 @@ end
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, ~, handles)
 linHandles = guidata(hObject);
-global tableInput
-global initialMatrixInput
+global tableInput;
+global initialMatrixInput;
 
 retrievedData = get(tableInput, 'data');
 augA = str2double(retrievedData);
@@ -698,31 +734,47 @@ Tol = str2double(get(handles.linearSysTolEdit, 'string'));
 omega = str2double(get(handles.omegaEdit, 'string'));
 iterations = str2double(get(handles.linearSysIterEdit, 'string'));
 set(handles.lSysOutputText, 'Max', 2);
+rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'));
 
 if isnan(Tol) || isnan(iterations)
     fprintf('Need Input')
 else
+    set(handles.SimpleOptimizedTab, 'HandleVisibility', 'off');
+    close all;
+    set(handles.SimpleOptimizedTab, 'HandleVisibility', 'on');
+    sol = [];
+    errFlag = true;
     switch method
         case 1
-            sol = Gauss_Elim(augA, linHandles);
+            [sol, errFlag] = Gauss_Elim(augA, linHandles);
         case 2
-            sol = LU_Decomposition(augA, linHandles)
+            [sol, errFlag] = LU_Decomposition(augA, linHandles);
         case 3
-            retrievedGuess = get(initialMatrixInput, 'data')
-            P = str2double(retrievedGuess)
-            sol = Jacobi(augA, P, linHandles)
+            retrievedGuess = get(initialMatrixInput, 'data');
+            P = str2double(retrievedGuess);
+            [sol, errFlag] = Jacobi(augA, P, linHandles);
         otherwise
             if isnan(omega)
                 errStr = 'need input';
                 set(handles.lSysOutputText, 'string', errStr);
             else
-                retrievedGuess = get(initialMatrixInput, 'data')
+                retrievedGuess = get(initialMatrixInput, 'data');
                 x0 = str2double(retrievedGuess);
-                sol = SOR(augA, x0, omega, iterations, Tol, linHandles)
+                [sol, errFlag] = SOR(augA, x0, omega, iterations, Tol, linHandles);
             end
     end
+    if errFlag ~= true
+        rowNames = strings;
+        for i = 1:rows
+            rowNames(i) = ['x',num2str(i)];
+        end
+        f = figure;
+        t = uitable(f);
+        set(t, 'Data', sol');
+        set(t, 'RowName', rowNames);
+        set(t, 'ColumnName', 'Solutions');
+    end
 end
-
 
 % hObject    handle to linearSysSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -731,18 +783,29 @@ end
 % --- Executes on button press in linearSysGuessButton.
 function linearSysGuessButton_Callback(hObject, eventdata, handles)
 set(handles.lSysOutputText, 'Max', 2);
-vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'))
-dataInput = cell(1, vars)
+global initialMatrixInput;
 
-global initialMatrixInput
-figure,
-pos = get(gcf,'position');
-set(gcf,'position',[pos(1:2) [660 120]])
-%Input table's creation
-initialMatrixInput = uitable('ColumnWidth',{70},...
-    'Position',[30 20 600 80], ...
-    'data',dataInput, ...
-    'ColumnEditable',true);
+vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'));
+
+if isnan(vars) || vars < 1 || vars == Inf
+    errorString = 'Invalid variable amount';
+    set(handles.lSysOutputText, 'string', errorString);
+else
+    dataInput = cell(1, vars);
+    figure,
+    pos = get(gcf,'position');
+    columnNames = strings;
+    for i = 1:rows
+        columnNames(i) = ['x',num2str(i)];
+    end
+    set(gcf,'position',[pos(1:2) [660 120]])
+    %Input table's creation
+    initialMatrixInput = uitable('ColumnWidth',{70},...
+        'Position',[30 20 600 80], ...
+        'data',dataInput, ...
+        'columnName', columnNames, ...
+        'ColumnEditable',true);
+end
 % hObject    handle to linearSysGuessButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -756,7 +819,7 @@ initialMatrixInput = uitable('ColumnWidth',{70},...
 % # of rows
 % # of cols
 % row input csv values?
-function solutions = Gauss_Elim(augA, handles)
+function [solutions, errFlag] = Gauss_Elim(augA, handles)
 opCount = 0;
 %row = 3;
 %col = 3;
@@ -770,6 +833,7 @@ opCount = 0;
 % TODO incorporate user input
 %A = [1, 2, -1; 2, 1, -2; -3, 1, 1]
 %ans = [3; 3; -6];
+errFlag = false;
 solutions = zeros;
 n = size(augA, 1);
 row = size(augA, 1);
@@ -800,8 +864,11 @@ tic;
 for j = 1:n-1 % n-1 = num of rows - the 1st row
     % check for division by zero
     if augA(j,j) == 0
-        opCount = opCount + 1;
-        error('zero pivot encountered');
+        errorStr = 'zero pivot encountered';
+        set(handles.lSysOutputText, 'string', errorStr);
+        errFlag = true;
+        toc;
+        break;
     end
     % eliminate col j to put zero in each location below diag
     % ex. a(j+1, j), a(j+2, j),...a(n,j)
@@ -809,53 +876,55 @@ for j = 1:n-1 % n-1 = num of rows - the 1st row
         % row multiplier
         multi = augA(i, j) / augA(j, j);
         opCount = opCount + 1;
-
-        % subtract multiplier * the row from 
+        
+        % subtract multiplier * the row from
         for index = 1:col
-            augA(i, index) = (augA(i, index) - (multi * augA(j, index)))
+            augA(i, index) = (augA(i, index) - (multi * augA(j, index)));
             opCount = opCount + 1;
         end
     end
 end
 
-% Backsolving
-for q = n:-1 : 1
-    solutions(q) = augA(q, row + 1);
-    for u = q+1:n
-        opCount = opCount + 1;
-        solutions(q) = solutions(q) - augA(q,u)*solutions(u);
+if errFlag == false
+    % Backsolving
+    for q = n:-1 : 1
+        solutions(q) = augA(q, row + 1);
+        for u = q+1:n
+            opCount = opCount + 1;
+            solutions(q) = solutions(q) - augA(q,u)*solutions(u);
+        end
+        solutions(q) = solutions(q)/augA(q,q);
+        fprintf('\n');
     end
-    solutions(q) = solutions(q)/augA(q,q);
-    fprintf('\n');
-end
     
-for x = 1:n
-    fprintf('x%d = %f\n', x, solutions(x));
+    for x = 1:n
+        fprintf('x%d = %f\n', x, solutions(x));
+    end
+    fprintf('\n');
+    time = toc;
+    fprintf('\n');
+    
+    opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
+    timeString = ['Elapsed Time = ', num2str(time)];
+    newString = combineString(condStr, opsString);
+    newString = combineString(newString, timeString);
+    set(handles.lSysOutputText, 'string', newString);
 end
-fprintf('\n');
-time = toc;
-fprintf('\n');
 
-opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
-timeString = ['Elapsed Time = ', num2str(time)];
-newString = combineString(condStr, opsString);
-newString = combineString(newString, timeString);
-set(handles.lSysOutputText, 'string', newString);
-%fprintf('Number of Operations = %d\n\n', opCount);
 
 % This function performs the LU factorization of a symmetric matrix.
 % The function checks for singularity by checking for a zero pivot.
 % The function also does a partial pivoting protocol to prevent swamping.
 % This function also creates a permutation matrix to help with backsolving.
-%   Input: Symmetric matrix and solution vector 
+%   Input: Symmetric matrix and solution vector
 %   Output: Lower Triangular factor
 %           Upper Triangular factor
 %           Permutation matrix
 %           Solution Vector x
 
 % input from user for now. may need to update.
-function solution = LU_Decomposition(augA, handles)
-%augA = [1 0 1; 0 1 1, 
+function [solution, errFlag] = LU_Decomposition(augA, handles)
+%augA = [1 0 1; 0 1 1,
 rows = size(augA,1);
 columns = rows + 1;
 A = augA;
@@ -863,13 +932,13 @@ A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
 opCount = 0;
-
+errFlag = false;
 
 % % % matrix A
 % A=[-1, 0, 1;
 %    2, 1, 1;
 %   -1, 2, 0]
- %vector b
+%vector b
 % b = [-2; 17; 3]
 
 % size of n x n
@@ -892,7 +961,7 @@ for k = 1:n
     i = i + k-1;
     opCount = opCount + 1;
     % if i != k
-    if i ~= k 
+    if i ~= k
         % interchange rows i and k in U
         % U(k, :) means (row k, all columns in row k)
         opCount = opCount + 3;
@@ -917,7 +986,7 @@ for k = 1:n
     % get factors L and U
     for j = k+1:n
         % set multiplier in L
-        L(j, k) = U(j, k) / U(k, k); 
+        L(j, k) = U(j, k) / U(k, k);
         opCount = opCount + 1;
         % for all in row j = for all in row j - multiplier*for all in row k
         U(j, :) = U(j, :) - L(j, k) * U(k, :);
@@ -954,7 +1023,7 @@ P
 fprintf('Solution vector = \n');
 solution
 
-function X = Jacobi(augA, P, handles)
+function [X, errFlag] = Jacobi(augA, P, handles)
 rows = size(augA,1);
 columns = rows + 1;
 A = augA;
@@ -962,29 +1031,24 @@ A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
 opCount = 0;
-convergenceStr = '';
 
 X = zeros();
 iterations = 10;
 N = length(b);
 Tol = 0.00000001;
 diagonalDominant = true;
-
+errFlag = false;
 % Check if A is strictly diagonally dominant
 % For each row in matrix A
 for r=1:N
     rowSum = sumabs(A(r,:)) - abs(A(r, r)); % Sum of the entire row minus the diagonal
     % Check if diagonal is strictly greater than the row sum
     if abs(A(r,r)) < rowSum
-        diagonalDominant = false;           % If not, note ite
+        fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
+        convergenceStr = 'Matrix A is not strictly diagonal dominant and may not converge.';
+        set(handles.lSysOutputText, 'string', convergenceStr);
         break;
     end
-end
-
-if diagonalDominant == false
-    fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
-    convergenceStr = 'Matrix A is not strictly diagonal dominant and may not converge.';
-    set(handles.lSysOutputText, 'string', convergenceStr);
 end
 
 tic;
@@ -1001,14 +1065,15 @@ for k=1:iterations
     end
 end
 
-time = toc;
+if errFlag == false
+    time = toc;
+    opsString = ['Number of Operations = ', num2str(opCount)];
+    timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
+    newString = combineString(opsString, timeString);
+    set(handles.lSysOutputText, 'string', newString);
+end
 
-opsString = ['Number of Operations = ', num2str(opCount)];
-timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
-newString = combineString(opsString, timeString);
-set(handles.lSysOutputText, 'string', newString);
-
-function[x, error, iter, flag]  = SOR(augA, x, w, max_it, tol, handles)
+function[x, errFlag]  = SOR(augA, x, w, max_it, tol, handles)
 rows = size(augA,1);
 columns = rows + 1;
 A = augA;
@@ -1017,15 +1082,15 @@ A(:,columns) = [];
 b = augA(:,columns);
 
 opCount = 0;
-
+GSStr = '';
 convStr = '';
 % input initialization
-% A = [3 1 -1; 
-%      2 4 1; 
+% A = [3 1 -1;
+%      2 4 1;
 %     -1 2 5];
-% 
+%
 % [n, n] = size(A);
-% 
+%
 % xold = [0; 0; 0];
 % b = [4; 1; 1];
 % w = 1.25;
@@ -1034,62 +1099,55 @@ convStr = '';
 
 
 x = x';
-diagonalDominant = true;
 
 n = length(A);
 
 if (w == 1)
     fprintf('The relaxation scalar omega = 1. The method used is now Gauss-Seidel')
-    GSString = 'The relaxation scalar omega = 1. The method used is now Gauss-Seidel';
-    set(handles.lSysOutputText, 'string', GSString);
+    GSStr = 'The relaxation scalar omega = 1. The method used is now Gauss-Seidel';
+    set(handles.lSysOutputText, 'string', GSStr);
 end
 
 tic;
 % check for diagonally dominant convergence guarantee
-for r=1:n 
+for r=1:n
     % Sum of the entire row minus the diagonal
-    rowSum = sumabs(A(r,:)) - abs(A(r, r)); 
+    rowSum = sumabs(A(r,:)) - abs(A(r, r));
     opCount = opCount + 1;
     % Check if diagonal is strictly greater than the row sum
     if (abs(A(r,r)) < rowSum)
-    % If not, note it
-        diagonalDominant = false;           
+        % If not, note it
+        fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
+        convStr = 'Matrix A is not strictly diagonal dominant and may not converge';
+        newStr = combineString(GSStr, convStr);
+        set(handles.lSysOutputText, 'string', newStr);
         break;
     end
-end
-
-if (diagonalDominant == false)
-% Let user know that convergence is not guaranteed
-    fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
-    convStr = 'Matrix A is not strictly diagonal dominant and may not converge';
-    newStr = combineString(GSString, convStr);
-    set(handles.lSysOutputText, 'string', newStr);
 end
 
 if size(b) ~= size(x)
     fprintf('The given approximation vector does not match the x vector size\n');
     errStr = 'The given approximation vector does not match the x vector size';
     set(handles.lSysOutputText, 'string', errStr);
-end
-
-
-flag = 0;    
-count = 1;
-
-% matrix splitting 
-% TODO: opCount will be affected by these operations. Need to add.
-D = diag(diag(A));
-L = tril(A-D);
-U = triu(A-D);
-%M = D + w*L;
-%N = (1 - w)*D - w*U;
-%G = M\N;
-G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
-opCount = opCount + 1;
-%fprintf('Iteration 1: ', G);
-datasave = [];
-% begin iteration
-for iter = 1:max_it                         
+    errFlag = true;
+else
+    flag = 0;
+    count = 1;
+    
+    % matrix splitting
+    % TODO: opCount will be affected by these operations. Need to add.
+    D = diag(diag(A));
+    L = tril(A-D);
+    U = triu(A-D);
+    %M = D + w*L;
+    %N = (1 - w)*D - w*U;
+    %G = M\N;
+    G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
+    opCount = opCount + 1;
+    %fprintf('Iteration 1: ', G);
+    datasave = [];
+    % begin iteration
+    for iter = 1:max_it
         xnew = G;
         RelForError = (norm(xnew-x))/(norm(xnew));
         opCount = opCount + 1;
@@ -1108,38 +1166,38 @@ for iter = 1:max_it
             x = [x, xnew];
             datasave = [datasave; count, RelForError, flag];
         end
+    end
+    
+    b = b / w; % vector b
+    if (RelForError > tol)
+        flag = 1;
+        fprintf('Did not converge')
+        convStr = 'Did not converge';
+        set(handles.lSysOutputText, 'string', convStr);
+    end
+    
+    % for function return
+    x = xnew;
+    error = RelForError;
+    iter = count;
+    
+    fprintf('Number of operations: %d\n', opCount);
+    time = toc;
+    
+    opsStr = ['Number of Operations = ', num2str(opCount)];
+    timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
+    newStr = combine(convStr, opsStr);
+    newStr = combineString(newStr, timeString);
+    set(handles.lSysOutputText, 'string', newStr);
+    
+    fprintf('\n');
+    
+    fprintf('  iteration    error    flag\n')
+    
+    disp(datasave)
+    fprintf(' x final\n')
+    disp(xnew)
 end
-
-b = b / w; % vector b
-if (RelForError > tol) 
-   flag = 1;
-   fprintf('Did not converge')
-   convStr = 'Did not converge';
-   set(handles.lSysOutputText, 'string', convStr);
-end
-
-% for function return
-x = xnew;
-error = RelForError;
-iter = count;
-
-fprintf('Number of operations: %d\n', opCount);
-time = toc;
-
-opsStr = ['Number of Operations = ', num2str(opCount)];
-timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
-newStr = combine(convStr, opsStr);
-newStr = combineString(newStr, timeString);
-set(handles.lSysOutputText, 'string', newStr);
-
-fprintf('\n');
-
-fprintf('  iteration    error    flag\n')
-
-disp(datasave)
-fprintf(' x final\n')
-disp(xnew)
-
 % -------------------------
 % --- NONLINEAR SYSTEMS ---
 % -------------------------
@@ -1352,18 +1410,18 @@ ca = {};
 
 %remove white spaces and convert string to char array
 variables(variables==' ') = [];
-variables = char(variables); 
+variables = char(variables);
 
 %load each variable into a cell
 for i=1:length(variables)
-    ca{i} = variables(i); 
+    ca{i} = variables(i);
 end
 celldisp(ca);
 
 %convert each char to sym type
 vars = cell2sym(ca);
 for i=1:length(variables)
-     syms(variables(i))
+    syms(variables(i))
 end
 
 %GET initial guess
@@ -1396,23 +1454,23 @@ for i=1:number_of_iterations
     %solve for the solution set, s, to plug into later
     tic;
     a = zeros(length(eqns),1);
-  
+    
     for j=1:length(eqns)
         answer = subs(eqns(j), vars, x);
         a(j) = single(answer);
     end %end of solution set loop
-
-   
+    
+    
     %solve for the constants in the Jacobian matrix
     %find values of Jacobian with starting point
     sol_matrix = subs(DF, vars, x);
-
+    
     %a = array containing the solution variables [s1, s2, s3...],
     %sol_matrix = solution matrix to solve for the solution set (s1, s2, s3...)
     %solve the linear system of equations this will output the solution set
     %{'a', 'b'}
     %[1,1]
-
+    
     %[(a+b), (a+(-b)), (a+b^2)]
     %
     
@@ -1425,8 +1483,8 @@ for i=1:number_of_iterations
     
     %reshape to a 1D array for easy subtraction
     sol_set = reshape(sol_set, [1, numel(a)]);
-
-
+    
+    
     %solve xk = x(k-1) + s --> xk
     x_values(i) = x(1);
     y_values(i) = x(2);
@@ -1440,14 +1498,14 @@ for i=1:number_of_iterations
         subplot(2,1,1)       % add first plot in 2 x 1 grid
         plot(x_values,y_values)
         title('Convergence or Divergence')
-
+        
         subplot(2,1,2)       % add second plot in 2 x 1 grid
         plot(t)       % plot using + markers
         title('TIme Complexity')
         drawnow()
         return
     end
-    diverge = 0; 
+    diverge = 0;
     if(i <= 10)
         distance(i) = round(sum(prev_x - x));
         if(i == 10)
@@ -1459,7 +1517,7 @@ for i=1:number_of_iterations
     
     
     %show the solution at the end of each step[[2*u^2 + v^2 + 3*w^2 + 6*w - 4*u + 2],[3*u^2 - 12*u + v^2 + 3*w^2 + 8], [u^2 + v^2 - 2*v + 2*w^2 - 5]]
-   t(i) = toc;
+    t(i) = toc;
 end %repeat k times end of iteration loop
 
 if(diverge == 1)
@@ -1479,7 +1537,7 @@ title('Convergence or Divergence')
 subplot(2,1,2)       % add second plot in 2 x 1 grid
 plot(t)       % plot using + markers
 title('Time Complexity')
-    
+
 
 
 % --- Executes on button press in nonLinearSysBroyden1SolveButton.
