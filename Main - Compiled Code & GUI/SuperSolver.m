@@ -50,6 +50,8 @@ handles = TabsFun(handles,TabFontSize,TabNames);
 guidata(hObject, handles);
 set(handles.linearSysGuessButton, 'enable', 'off');
 set(handles.omegaEdit, 'enable', 'off');
+set(handles.singleVarx0Edit, 'enable', 'off');
+warning('off', 'symbolic:sym:sym:DeprecateExpressions');
 % UIWAIT makes SuperSolver wait for user response (see UIRESUME)
 % uiwait(handles.SimpleOptimizedTab);
 
@@ -147,9 +149,11 @@ switch method
     case 1
         set(handles.bisectionAEdit, 'enable', 'on');
         set(handles.bisectionBEdit, 'enable', 'on');
+        set(handles.singleVarx0Edit, 'enable', 'off');
     otherwise
         set(handles.bisectionAEdit, 'enable', 'off');
         set(handles.bisectionBEdit, 'enable', 'off');
+        set(handles.singleVarx0Edit, 'enable', 'on');
 end
 
 % Hints: contents = cellstr(get(hObject,'String')) returns singleVarListBox contents as cell array
@@ -266,28 +270,38 @@ function singleVarSolveButton_Callback(hObject, ~, handles)
 % hObject    handle to singleVarSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+
+% Formatting text box
 set(handles.singleVarOutputText, 'Max', 2);
 method = get(handles.singleVarListBox, 'value');
+
+% Receiving input from GUI elements
 syms infxn;
 rawfxn = get(handles.singleVarFunctionEdit, 'string');
 infxn = sym(rawfxn);
 x0 = str2double(get(handles.singleVarx0Edit, 'string'));
 Tol = str2double(get(handles.singleVarToleranceEdit, 'string'));
 r = str2double(get(handles.singleVarRootEdit, 'string'));
-iterations = str2double(get(handles.singleVarIterationsEdit, 'string'));
-xList = zeros();
-errList = zeros();
-errFlag = false;
-if isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(iterations) || abs(r) == Inf
-    warning('off', 'symbolic:sym:sym:DeprecateExpressions');
-    errorString = 'Missing Input';
+maxIterations = str2double(get(handles.singleVarIterationsEdit, 'string'));
+
+
+
+errFlag = false; % Indicates if the methods have stopped
+
+% Checks for valid/complete input
+if isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(maxIterations) || abs(r) == Inf
+    errorString = 'Invalid Input';
     set(handles.singleVarOutputText, 'string', errorString);
-    fprintf('Need Input')
 else
+    % Empty values for later output
+    xList = zeros();
+    errList = zeros();
+    iterations = 0;
     if isnan(r)
-        r = Inf;
+        r = Inf;    % Checks to see if user entered real rool, can run in different manner
     end
-    bandles = guidata(hObject);
+    outhandles = guidata(hObject);  % Passing handles to functions to work with textbox
+    
     switch method
         case 1
             a = str2double(get(handles.bisectionAEdit, 'string'));
@@ -296,29 +310,38 @@ else
                 rangeErrorString='Missing range input';
                 set(handles.singleVarOutputText, 'string', rangeErrorString);
             else
-                [xList, errList, errFlag] = Bisection(infxn, a, b, r, Tol, bandles);
+                [xList, errList, errFlag, iterations] = Bisection(infxn, a, b, r, Tol, maxIterations, outhandles);
             end
         case 2
-            [xList, errList, errFlag] = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, bandles);
+            [xList, errList, errFlag, iterations] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, outhandles);
         otherwise
-            [xList, errList, errFlag] = Single_Var_Newtons(infxn, x0, r, Tol, iterations, bandles);
+            [xList, errList, errFlag, iterations] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, outhandles);
     end
     if errFlag == false
-        calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), bandles);
+        calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations);
     end
     if r ~= Inf
         combinedList = [xList; errList]';
-        % Implement new 'rowHeader' in 'scrollPane'
         f = figure;
         t = uitable(f);
         set(t,'Data',combinedList); % Use the set command to change the uitable properties.
         set(t,'ColumnName',{'xi', 'Error'})
+        newRowIndices = strings;
+        for j=0:iterations-1
+            newRowIndices(j+1) = num2str(j);
+        end
+        set(t, 'RowName', newRowIndices);
     else
         combinedList = xList';
         f = figure;
         t = uitable(f);
         set(t,'Data',combinedList);
         set(t,'ColumnName',{'xi'})
+        newRowIndices = strings;
+        for j=0:iterations-1
+            newRowIndices(j+1) = num2str(j);
+        end
+        set(t, 'RowName', newRowIndices);
     end
     
 end
@@ -349,7 +372,7 @@ end
 % Single Variable Methods
 %==============================
 
-function [xList, errList, errorFlag] = Single_Var_Newtons(infxn, x0, r, Tol, iterations, handles)
+function [xList, errList, errorFlag, i] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
 %Tol = 0.00000001;
 %syms x;
 xList = zeros();                        % List of x values calculated for graphing and tables
@@ -374,7 +397,7 @@ else
     set(handles.singleVarOutputText, 'string', quadConString);
 end
 
-for i = 1:iterations
+for i = 1:maxIterations
     fofx = f(xList(i));
     fpofx = fprime(xList(i));
     
@@ -395,7 +418,6 @@ for i = 1:iterations
     end
 end
 
-%calcError(infxn, fprime, r, xList(i));
 
 % Fixed Point Iteration
 % Receives:
@@ -404,7 +426,7 @@ end
 % iterations = number of iterations
 % Returns list of calculated x values
 
-function [xList, errList, errorFlag] = Single_Var_FixedPoint(infxn, x0, r, Tol, iterations, handles)
+function [xList, errList, errorFlag, i] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, handles)
 %Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
 errorFlag = false;
@@ -428,7 +450,7 @@ if r ~= Inf
     errList(1) = abs(xList(1) - r);
 end
 % Runs until root approximated or number of iterations reached
-for i = 1:iterations
+for i = 1:maxIterations
     xList(i+1) = f(xList(i));           % Get next x from result of current x
     if r ~= Inf
         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
@@ -444,8 +466,9 @@ end
 %Input: function handle f; a,b such that f(a)*f(b)<0,
 % and tolerance tol
 %Output: Approximate solution xc
-function [cList, errList, errorFlag] = Bisection(infxn,a,b,r,tol, handles)
+function [cList, errList, errorFlag, i] = Bisection(infxn,a,b,r,tol, maxIterations, handles)
 f = matlabFunction(infxn);
+errorFlag = false;
 if sign(f(a))*sign(f(b)) >= 0
     errorString = 'f(a)f(b)<0, Intermediate Value Theorem not satisfied!'; %ceases exe  cution
     set(handles.singleVarOutputText, 'string', errorString);
@@ -455,15 +478,14 @@ else
     errList = zeros;
     fa=f(a);
     %fb=f(b);
-    i = 1;
-    while (b-a)/2>tol
+    for i =1:maxIterations
         cList(i)=(a+b)/2;
         if r ~= Inf
             errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
         end
         
         fc=f(cList(i));
-        if fc == 0 %c is a solution, done
+        if fc == 0 || (b-a)/2<tol               %c is a solution or below the tolerance, done
             break
         end
         if sign(fc)*sign(fa)<0 %a and c make the new interval
@@ -471,8 +493,6 @@ else
         else %c and b make the new interval
             a=cList(i);fa=fc;
         end
-        
-        i = i + 1;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
 end
@@ -480,11 +500,10 @@ end
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
 % approximate root
-function calcError(func, deriv, r, xa, handles)
+function calcError(func, deriv, r, xa, handles, i)
+derivErrorFlag = false;
 % might have to remove error magnification or find alternative for gpow
-%gPow = feval(symengine, 'degree', func);    % Gets g(x) from highest degree of the equations, func has to be symbolic for degree() to work
-%gofr = r^gPow;                              % g(r) will just be r^degree
-%magError = abs(gofr/(r*feval(deriv, r)));   % Calculating the magnitude of error from equation on page 49
+
 backwardErr = double(abs(subs(func,xa)));
 approxStr = 'Approximate Root = ';
 if r ~= Inf
@@ -494,14 +513,28 @@ if r ~= Inf
     mString = ' has multiplicity = ';
     fString = 'Forward Error = ';
     forwardStr = sprintf('%s%s%s%s\n%s%s', realString, num2str(r, '%20.10f'), mString, num2str(rootM, '%20.10f'), fString, num2str(forwardErr, '%20.10f'));
+    try
+        gPow = feval(symengine, 'degree', func);    % Gets g(x) from highest degree of the equations, func has to be symbolic for degree() to work
+        gofr = r^gPow;                              % g(r) will just be r^degree
+        magError = double(abs(gofr/(r*feval(deriv, r))));   % Calculating the magnitude of error from equation on page 49
+    catch
+        derivErrorFlag = true;
+    end
 end
 
+iterationsString = ['Number of Iterations = ', num2str(i-1)];
 bString = 'Backward Error = ';
 currString = get(handles.singleVarOutputText, 'string');
 newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
-statusString = combineString(currString, newString);
+statusString = combineString(currString, iterationsString);
+statusString = combineString(statusString, newString);
 if r ~= Inf
     statusString = combineString(statusString, forwardStr);
+end
+if derivErrorFlag == false && r ~= Inf
+    digits = floor(log10(magError*10));
+    errorMagStr = ['The function has an error magnification of: ', num2str(magError), ', ', num2str(digits), ' digits of accuracy are lost.'];
+    statusString = combineString(statusString, errorMagStr);
 end
 set(handles.singleVarOutputText, 'string', statusString);
 % Remove and return the error magnifcation when integrating code
@@ -847,9 +880,6 @@ norminf_inv = norm(inv(A), inf);
 cond_num = norminf * norminf_inv;
 
 iso_exp = floor(log10(cond_num*10));
-fprintf('Error Magnification factors of the magnitude %d are possible.\n', iso_exp);
-fprintf('Since Matlab defaults to double precision this means that \n');
-fprintf('16 - %d = %d correct digits in the solution.\n', iso_exp, 16-iso_exp);
 
 condStr1 = ['Error Magnification factors of the magnitude ', num2str(iso_exp), ' are possible'];
 condStr2 = 'Since Matlab defaults to double precision this means that';
@@ -1084,19 +1114,6 @@ b = augA(:,columns);
 opCount = 0;
 GSStr = '';
 convStr = '';
-% input initialization
-% A = [3 1 -1;
-%      2 4 1;
-%     -1 2 5];
-%
-% [n, n] = size(A);
-%
-% xold = [0; 0; 0];
-% b = [4; 1; 1];
-% w = 1.25;
-% max_it = 2;
-% tol = 0.00000001;
-
 
 x = x';
 
