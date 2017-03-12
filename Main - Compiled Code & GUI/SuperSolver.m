@@ -21,7 +21,7 @@ end
 % End initialization code - DO NOT EDIT
 
 % --- Executes just before SuperSolver is made visible.
-function SuperSolver_OpeningFcn(hObject, eventdata, handles, varargin)
+function SuperSolver_OpeningFcn(hObject, ~, handles, varargin)
 % This function has no output args, see OutputFcn.
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -30,7 +30,6 @@ function SuperSolver_OpeningFcn(hObject, eventdata, handles, varargin)
 
 % Choose default command line output for SuperSolver
 handles.output = hObject;
-
 %% Tabs Code
 % Settings
 TabFontSize = 8;
@@ -129,7 +128,7 @@ for i = 1:handles.TabsNumber;
 end
 
 % --- Outputs from this function are returned to the command line.
-function varargout = SuperSolver_OutputFcn(hObject, eventdata, handles)
+function varargout = SuperSolver_OutputFcn(~, ~, handles)
 % varargout  cell array for returning output args (see VARARGOUT);
 % hObject    handle to figure
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -140,7 +139,7 @@ varargout{1} = handles.output;
 
 
 % --- Executes on selection change in singleVarListBox.
-function singleVarListBox_Callback(hObject, eventdata, handles)
+function singleVarListBox_Callback(~, ~, handles)
 % hObject    handle to singleVarListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -161,7 +160,7 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function singleVarListBox_CreateFcn(hObject, eventdata, handles)
+function singleVarListBox_CreateFcn(hObject, ~, ~)
 % hObject    handle to singleVarListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -174,7 +173,7 @@ end
 
 
 
-function singleVarToleranceEdit_Callback(hObject, eventdata, handles)
+function singleVarToleranceEdit_Callback(~, ~, ~)
 % hObject    handle to singleVarToleranceEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -184,7 +183,7 @@ function singleVarToleranceEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function singleVarToleranceEdit_CreateFcn(hObject, eventdata, handles)
+function singleVarToleranceEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to singleVarToleranceEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -197,7 +196,7 @@ end
 
 
 
-function singleVarIterationsEdit_Callback(hObject, eventdata, handles)
+function singleVarIterationsEdit_Callback(~, ~, ~)
 % hObject    handle to singleVarIterationsEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -207,7 +206,7 @@ function singleVarIterationsEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function singleVarIterationsEdit_CreateFcn(hObject, eventdata, handles)
+function singleVarIterationsEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to singleVarIterationsEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -218,7 +217,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function singleVarx0Edit_Callback(hObject, eventdata, handles)
+function singleVarx0Edit_Callback(~, ~, ~)
 % hObject    handle to singleVarx0Edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -228,7 +227,7 @@ function singleVarx0Edit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function singleVarx0Edit_CreateFcn(hObject, eventdata, handles)
+function singleVarx0Edit_CreateFcn(hObject, ~, ~)
 % hObject    handle to singleVarx0Edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -241,7 +240,7 @@ end
 
 
 
-function singleVarFunctionEdit_Callback(hObject, eventdata, handles)
+function singleVarFunctionEdit_Callback(~, ~, ~)
 % hObject    handle to singleVarFunctionEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -251,7 +250,7 @@ function singleVarFunctionEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function singleVarFunctionEdit_CreateFcn(hObject, eventdata, handles)
+function singleVarFunctionEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to singleVarFunctionEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -272,7 +271,7 @@ function singleVarSolveButton_Callback(hObject, ~, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Formatting text box
-set(handles.singleVarOutputText, 'Max', 2);
+set(handles.singleVarOutputText, 'Max', 5);
 method = get(handles.singleVarListBox, 'value');
 
 % Receiving input from GUI elements
@@ -294,6 +293,9 @@ if isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(maxIterations) || abs(r) 
     set(handles.singleVarOutputText, 'string', errorString);
 else
     % Empty values for later output
+    set(handles.SimpleOptimizedTab, 'HandleVisibility', 'off');
+    close all;
+    set(handles.SimpleOptimizedTab, 'HandleVisibility', 'on');
     xList = zeros();
     errList = zeros();
     iterations = 0;
@@ -309,6 +311,7 @@ else
             if isnan(a) || isnan(b)
                 rangeErrorString='Missing range input';
                 set(handles.singleVarOutputText, 'string', rangeErrorString);
+                errFlag = true;
             else
                 [xList, errList, errFlag, iterations] = Bisection(infxn, a, b, r, Tol, maxIterations, outhandles);
             end
@@ -320,34 +323,37 @@ else
     if errFlag == false
         calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations);
     end
-    if r ~= Inf
-        combinedList = [xList; errList]';
-        f = figure;
-        t = uitable(f);
-        set(t,'Data',combinedList); % Use the set command to change the uitable properties.
-        set(t,'ColumnName',{'xi', 'Error'})
-        newRowIndices = strings;
-        for j=0:iterations-1
-            newRowIndices(j+1) = num2str(j);
+    if length(xList) > 1
+            f = figure;
+            t = uitable(f);
+            newRowIndices = strings;
+            for j=0:iterations-1
+                newRowIndices(j+1) = num2str(j);
+            end
+            newRowIndices(j+2) = num2str(j+1);
+            set(t, 'RowName', newRowIndices);
+            xStrings = cell(size(xList));
+            for s = 1:iterations+1
+                xStrings(s) = cellstr(num2str(xList(s), '%20.16f'));
+            end
+        if r ~= Inf
+            errStrings = cell(size(errList));
+            for s = 1:iterations+1
+                errStrings(s) = cellstr(num2str(errList(s), '%20.16f'));
+            end
+            combinedList = [xStrings; errStrings]';
+            set(t,'Data',combinedList); % Use the set command to change the uitable properties.
+            set(t,'ColumnName',{'xi', 'Error'})
+        else
+            combinedList = xStrings';
+            set(t,'Data',combinedList);
+            set(t,'ColumnName',{'xi'})
+            set(t, 'RowName', newRowIndices);
         end
-        set(t, 'RowName', newRowIndices);
-    else
-        combinedList = xList';
-        f = figure;
-        t = uitable(f);
-        set(t,'Data',combinedList);
-        set(t,'ColumnName',{'xi'})
-        newRowIndices = strings;
-        for j=0:iterations-1
-            newRowIndices(j+1) = num2str(j);
-        end
-        set(t, 'RowName', newRowIndices);
     end
-    
 end
 
-
-function singleVarRootEdit_Callback(~, ~, handles)
+function singleVarRootEdit_Callback(~, ~, ~)
 % hObject    handle to singleVarRootEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -384,7 +390,7 @@ errorFlag = false;
 %infxn = sym(infxn)
 f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
 fprime = matlabFunction(diff(infxn));   % First derivative of f
-count = zeros();
+iCount = zeros();
 difference = zeros();
 ticks = 0;
 
@@ -401,12 +407,9 @@ else
     set(handles.singleVarOutputText, 'string', quadConString);
 end
 
-tic;
 
 for i = 1:maxIterations
-    count(i) = i;
-    tic;
-
+    iCount(i) = i-1;
     fofx = f(xList(i));
     fpofx = fprime(xList(i));
     
@@ -418,20 +421,22 @@ for i = 1:maxIterations
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
-    difference(i) = xList(i+1) - xList(i)
+    difference(i+1) = abs(xList(i+1) - xList(i));
     if (difference(i) > 2 && difference(i) < difference(i + 1))
       ticks = ticks + 1;  
     end
     
-    if (ticks > 5)
-        fprintf('The answer is likely diverging.\n');
+    if (ticks > 3)        
+        currStr = get(handles.singleVarOutputText, 'string');
+        divStr = 'The answer is diverging.';
+        newStr = combineString(currStr, divStr);
+        set(handles.singleVarOutputText, 'string', newStr);
+        errorFlag = true;
+        break;
     end
-    
-    ei = abs(xList(i) - r);                    % Gets forward error of current iteration
-    iterativeErrorList(i) = ei/(pastError)^2;  % Error in relation to previous iteration
-    
+        
     if r ~= Inf
-        errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+        errList(i+1) = abs(xList(i+1) - r);                % Gets forward error of current iteration
     end
     % Checks if the difference in x values has converged
     if (dx <= Tol || abs(fofx) <= Tol)
@@ -439,15 +444,13 @@ for i = 1:maxIterations
     end
 end
 
-count(i+1) = i+1;
+iCount(i+1) = i;
 figure
-plot(count, xList);
+plot(iCount, xList);
+set(gca, 'xtick', 0:i);
 xlabel('Iteration');
-ylabel('f(x)');
-title('Newton Method of Single Variable');
-time = toc;
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
+ylabel('x');
+title('Newton''s Method for Single Variable');
 
 % Fixed Point Iteration
 % Receives:
@@ -462,20 +465,21 @@ function [xList, errList, errorFlag, i] = Single_Var_FixedPoint(infxn, x0, r, To
 xList = zeros;          % Have x be a list for creating graphs
 errorFlag = false;
 errList = zeros;
-
+iCount = zeros;
+difference = zeros;
+difference(1) = 0;
+ticks = 0;
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
 fprimeofr = fprime(r);
 if abs(fprimeofr) > 1
-    fprintf('May not converge')
     set(handles.singleVarOutputText, 'string', 'FPI may not converge')
 elseif fprimeofr == 0
-    fprintf('Quadratically convergent')
     set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
 else
-    fprintf('Linearly convergent with rate %s', num2str(abs(fprimeofr)))
-    set(handles.singleVarOutputText, 'string', 'Since |g''(r)| < 1, FPI will be quadratically convergent')
+    linConStr = ['Since |g''(r)| < 1, FPI will be linearly convergent with rate ', num2str(abs(fprimeofr))];
+    set(handles.singleVarOutputText, 'string', linConStr);
 end
 xList(1) = x0;
 if r ~= Inf
@@ -485,8 +489,7 @@ end
 
 tic;
 for i = 1:maxIterations
-    count(i) = i;
-    tic;
+    iCount(i) = i-1;
     xList(i+1) = f(xList(i));           % Get next x from result of current x
     if r ~= Inf
         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
@@ -495,17 +498,28 @@ for i = 1:maxIterations
     if abs(dx) < Tol
         break;
     end
+    difference(i+1) = abs(xList(i+1) - xList(i));
+    if (difference(i) > 2 && difference(i) < difference(i + 1))
+      ticks = ticks + 1;  
+    end
+    
+    if (ticks > 3)        
+        currStr = get(handles.singleVarOutputText, 'string');
+        divStr = 'The answer is diverging.';
+        newStr = combineString(currStr, divStr);
+        set(handles.singleVarOutputText, 'string', newStr);
+        errorFlag = true;
+        break;
+    end
 end
-time = toc;
-count(i+1) = i+1;
+iCount(i+1) = i;
 
 figure
-plot(count, xList);
+plot(iCount, xList);
 xlabel('Iteration');
-ylabel('g(x)');
+ylabel('x');
+set(gca, 'xtick', 0:i);
 title('Fixed Point Iteration');
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
 
 %Program 1.1 Bisection Method
 %Computes approximate solution of f(x)=0
@@ -516,17 +530,22 @@ set(handles.singleVarOutputText, 'string', timeString);
 function [cList, errList, errorFlag, i] = Bisection(infxn,a,b,r,tol, maxIterations, handles)
 f = matlabFunction(infxn);
 errorFlag = false;
+iCount = zeros;
+cList = zeros;
+errList = zeros;
+i = 0;
+
 if sign(f(a))*sign(f(b)) >= 0
     errorString = 'f(a)f(b)<0, Intermediate Value Theorem not satisfied!'; %ceases exe  cution
     set(handles.singleVarOutputText, 'string', errorString);
     errorFlag = true;
 else
     cList = zeros;
-    errList = zeros;
     fa=f(a);
 
     %fb=f(b);
     for i =1:maxIterations
+        iCount(i) = i-1;
         cList(i)=(a+b)/2;
         if r ~= Inf
             errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
@@ -541,21 +560,19 @@ else
         else %c and b make the new interval
             a=cList(i);fa=fc;
         end
-        count(i) = i;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
 
 end
-time = toc;
 
-figure
-plot(count, cList);
-xlabel('Iteration');
-ylabel('c');
-title('Bisection');
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
-
+if errorFlag ~= true
+    figure
+    plot(iCount, cList);
+    set(gca, 'xtick', 0:i);
+    xlabel('Iteration');
+    ylabel('c');
+    title('Bisection');
+end
 % function to calculate forward error, backward error, and error
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
@@ -582,7 +599,7 @@ if r ~= Inf
     end
 end
 
-iterationsString = ['Number of Iterations = ', num2str(i-1)];
+iterationsString = ['Number of Iterations = ', num2str(i)];
 bString = 'Backward Error = ';
 currString = get(handles.singleVarOutputText, 'string');
 newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
@@ -627,7 +644,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function bisectionBEdit_Callback(hObject, eventdata, handles)
+function bisectionBEdit_Callback(~, ~, ~)
 % hObject    handle to bisectionBEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -637,7 +654,7 @@ function bisectionBEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function bisectionBEdit_CreateFcn(hObject, eventdata, handles)
+function bisectionBEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to bisectionBEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -675,7 +692,7 @@ end
 
 
 % --- Executes during object creation, after setting all properties.
-function linearSysListBox_CreateFcn(hObject, eventdata, handles)
+function linearSysListBox_CreateFcn(hObject, ~, ~)
 % hObject    handle to linearSysListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -689,7 +706,7 @@ end
 
 
 
-function linearSysNumOfVarEdit_Callback(hObject, eventdata, handles)
+function linearSysNumOfVarEdit_Callback(~, ~, ~)
 
 % hObject    handle to linearSysNumOfVarEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -700,7 +717,7 @@ function linearSysNumOfVarEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function linearSysNumOfVarEdit_CreateFcn(hObject, eventdata, handles)
+function linearSysNumOfVarEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to linearSysNumOfVarEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -713,7 +730,7 @@ end
 
 
 
-function linearSysIterEdit_Callback(hObject, eventdata, handles)
+function linearSysIterEdit_Callback(~, ~, ~)
 % hObject    handle to linearSysIterEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -723,7 +740,7 @@ function linearSysIterEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function linearSysIterEdit_CreateFcn(hObject, eventdata, handles)
+function linearSysIterEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to linearSysIterEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -736,7 +753,7 @@ end
 
 
 
-function linearSysTolEdit_Callback(hObject, eventdata, handles)
+function linearSysTolEdit_Callback(~, ~, ~)
 % hObject    handle to linearSysTolEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -746,7 +763,7 @@ function linearSysTolEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function linearSysTolEdit_CreateFcn(hObject, eventdata, handles)
+function linearSysTolEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to linearSysTolEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -759,7 +776,7 @@ end
 
 
 
-function omegaEdit_Callback(hObject, eventdata, handles)
+function omegaEdit_Callback(~, ~, ~)
 % hObject    handle to omegaEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -769,7 +786,7 @@ function omegaEdit_Callback(hObject, eventdata, handles)
 
 
 % --- Executes during object creation, after setting all properties.
-function omegaEdit_CreateFcn(hObject, eventdata, handles)
+function omegaEdit_CreateFcn(hObject, ~, ~)
 % hObject    handle to omegaEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
@@ -796,7 +813,7 @@ else
         columnNames(i) = ['x',num2str(i)];
     end
     columnNames(i+1) = 'b';
-    handles.matrixFigure = figure,
+    figure,
     pos = get(gcf,'position');
     set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
@@ -874,8 +891,8 @@ end
 % handles    structure with handles and user data (see GUIDATA)
 
 % --- Executes on button press in linearSysGuessButton.
-function linearSysGuessButton_Callback(hObject, eventdata, handles)
-set(handles.lSysOutputText, 'Max', 2);
+function linearSysGuessButton_Callback(~, ~, handles)
+set(handles.lSysOutputText, 'Max', 5);
 global initialMatrixInput;
 
 vars = str2double(get(handles.linearSysNumOfVarEdit, 'string'));
@@ -913,7 +930,7 @@ end
 % # of cols
 % row input csv values?
 function [solutions, errFlag] = Gauss_Elim(augA, handles)
-opCount = 0;
+opiCount = 0;
 %row = 3;
 %col = 3;
 
@@ -954,7 +971,7 @@ tic;
 for j = 1:n-1 % n-1 = num of rows - the 1st row
     % check for division by zero
     if augA(j,j) == 0
-        errorStr = 'zero pivot encountered';
+        errorStr = 'zero pivot eniCountered';
         set(handles.lSysOutputText, 'string', errorStr);
         errFlag = true;
         toc;
@@ -965,12 +982,12 @@ for j = 1:n-1 % n-1 = num of rows - the 1st row
     for i = j+1:n
         % row multiplier
         multi = augA(i, j) / augA(j, j);
-        opCount = opCount + 1;
+        opiCount = opiCount + 1;
         
         % subtract multiplier * the row from
         for index = 1:col
             augA(i, index) = (augA(i, index) - (multi * augA(j, index)));
-            opCount = opCount + 1;
+            opiCount = opiCount + 1;
         end
     end
 end
@@ -980,7 +997,7 @@ if errFlag == false
     for q = n:-1 : 1
         solutions(q) = augA(q, row + 1);
         for u = q+1:n
-            opCount = opCount + 1;
+            opiCount = opiCount + 1;
             solutions(q) = solutions(q) - augA(q,u)*solutions(u);
         end
         solutions(q) = solutions(q)/augA(q,q);
@@ -994,7 +1011,7 @@ if errFlag == false
     time = toc;
     fprintf('\n');
     
-    opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
+    opsString = ['Number of Operations = ', num2str(opiCount), ' seconds'];
     timeString = ['Elapsed Time = ', num2str(time)];
     newString = combineString(condStr, opsString);
     newString = combineString(newString, timeString);
@@ -1021,7 +1038,7 @@ A = augA;
 A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
-opCount = 0;
+opiCount = 0;
 errFlag = false;
 
 % % % matrix A
@@ -1032,7 +1049,7 @@ errFlag = false;
 % b = [-2; 17; 3]
 
 % size of n x n
-[n, n] = size(A);
+[~, n] = size(A);
 
 % init U to A
 U = A;
@@ -1049,17 +1066,17 @@ for k = 1:n
     %  maximum absolute value from the k thru n rows, k column
     [pivot i] = max(abs(U(k:n,k)));
     i = i + k-1;
-    opCount = opCount + 1;
+    opiCount = opiCount + 1;
     % if i != k
     if i ~= k
         % interchange rows i and k in U
         % U(k, :) means (row k, all columns in row k)
-        opCount = opCount + 3;
+        opiCount = opiCount + 3;
         temp = U(k, :);
         U(k, :) = U(i, :);
         U(i, :) = temp;
         % interchange rows i and k in P
-        opCount = opCount + 3;
+        opiCount = opiCount + 3;
         temp = P(k, :);
         P(k, :) = P(i, :);
         P(i, :) = temp;
@@ -1070,17 +1087,17 @@ for k = 1:n
             temp = L(k, 1:k-1);
             L(k, 1:k-1) = L(i, 1:k-1);
             L(i, 1:k-1) = temp;
-            opCount = opCount + 3;
+            opiCount = opiCount + 3;
         end %endif
     end %end outer if ~=
     % get factors L and U
     for j = k+1:n
         % set multiplier in L
         L(j, k) = U(j, k) / U(k, k);
-        opCount = opCount + 1;
+        opiCount = opiCount + 1;
         % for all in row j = for all in row j - multiplier*for all in row k
         U(j, :) = U(j, :) - L(j, k) * U(k, :);
-        opCount = opCount + 1;
+        opiCount = opiCount + 1;
     end % end gauss elim
 end
 
@@ -1089,25 +1106,25 @@ c = [];
 inv(L)
 Pb = P*b;
 c = L\Pb;
-opCount = opCount + n^2;
+opiCount = opiCount + n^2;
 
 %solve for x
 solution = [];
 solution = U\c;
-opCount = opCount + n^2;
+opiCount = opiCount + n^2;
 
 time = toc;
 
-opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
+opsString = ['Number of Operations = ', num2str(opiCount), ' seconds'];
 timeString = ['Elapsed Time = ', num2str(time)];
 newString = combineString(opsString, timeString);
 set(handles.lSysOutputText, 'string', newString);
 
-fprintf('Number of Operations = %d\n', opCount);
+fprintf('Number of Operations = %d\n', opiCount);
 fprintf('Lower Triangular = \n');
-L
+L;
 fprintf('Upper Triangular = \n');
-U
+U;
 fprintf('Permutation Matrix = \n');
 P
 fprintf('Solution vector = \n');
@@ -1120,7 +1137,7 @@ A = augA;
 A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
-opCount = 0;
+opiCount = 0;
 
 X = zeros();
 iterations = 10;
@@ -1157,7 +1174,7 @@ end
 
 if errFlag == false
     time = toc;
-    opsString = ['Number of Operations = ', num2str(opCount)];
+    opsString = ['Number of Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newString = combineString(opsString, timeString);
     set(handles.lSysOutputText, 'string', newString);
@@ -1171,7 +1188,7 @@ A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
 
-opCount = 0;
+opiCount = 0;
 GSStr = '';
 convStr = '';
 
@@ -1190,7 +1207,7 @@ tic;
 for r=1:n
     % Sum of the entire row minus the diagonal
     rowSum = sumabs(A(r,:)) - abs(A(r, r));
-    opCount = opCount + 1;
+    opiCount = opiCount + 1;
     % Check if diagonal is strictly greater than the row sum
     if (abs(A(r,r)) < rowSum)
         % If not, note it
@@ -1209,10 +1226,10 @@ if size(b) ~= size(x)
     errFlag = true;
 else
     flag = 0;
-    count = 1;
+    iCount = 1;
     
     % matrix splitting
-    % TODO: opCount will be affected by these operations. Need to add.
+    % TODO: opiCount will be affected by these operations. Need to add.
     D = diag(diag(A));
     L = tril(A-D);
     U = triu(A-D);
@@ -1220,28 +1237,28 @@ else
     %N = (1 - w)*D - w*U;
     %G = M\N;
     G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
-    opCount = opCount + 1;
+    opiCount = opiCount + 1;
     %fprintf('Iteration 1: ', G);
     datasave = [];
     % begin iteration
     for iter = 1:max_it
         xnew = G;
         RelForError = (norm(xnew-x))/(norm(xnew));
-        opCount = opCount + 1;
+        opiCount = opiCount + 1;
         % update approximation
         while (RelForError > tol)
             x = xnew;
-            opCount = opCount + 1;
+            opiCount = opiCount + 1;
             G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b)
             xnew = G;
-            opCount = opCount + 1;
+            opiCount = opiCount + 1;
             RelForError = (norm(xnew-x))/(norm(xnew));
             if (RelForError <= tol)
                 break
             end
-            count = count+1;
+            iCount = iCount+1;
             x = [x, xnew];
-            datasave = [datasave; count, RelForError, flag];
+            datasave = [datasave; iCount, RelForError, flag];
         end
     end
     
@@ -1256,12 +1273,12 @@ else
     % for function return
     x = xnew;
     error = RelForError;
-    iter = count;
+    iter = iCount;
     
-    fprintf('Number of operations: %d\n', opCount);
+    fprintf('Number of operations: %d\n', opiCount);
     time = toc;
     
-    opsStr = ['Number of Operations = ', num2str(opCount)];
+    opsStr = ['Number of Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combine(convStr, opsStr);
     newStr = combineString(newStr, timeString);
