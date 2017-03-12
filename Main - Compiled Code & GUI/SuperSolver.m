@@ -1743,7 +1743,7 @@ function lSysOutputText_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function lSysOutputText_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to lSysOutputText (see GCBO)
-=======
+
 
 function [forward, backward]=find_error(xa, x, eqns,vars)
 %forward error
@@ -1771,7 +1771,7 @@ function nonLinearSysOutput_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysOutput_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to nonLinearSysOutput (see GCBO)
->>>>>>> gui_figure
+
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1803,4 +1803,4 @@ function slider3_CreateFcn(hObject, eventdata, handles)
 if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
->>>>>>> gui_figure
+
