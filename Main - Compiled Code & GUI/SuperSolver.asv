@@ -50,8 +50,6 @@ handles = TabsFun(handles,TabFontSize,TabNames);
 guidata(hObject, handles);
 set(handles.linearSysGuessButton, 'enable', 'off');
 set(handles.omegaEdit, 'enable', 'off');
-set(handles.singleVarx0Edit, 'enable', 'off');
-warning('off', 'symbolic:sym:sym:DeprecateExpressions');
 % UIWAIT makes SuperSolver wait for user response (see UIRESUME)
 % uiwait(handles.SimpleOptimizedTab);
 
@@ -149,11 +147,9 @@ switch method
     case 1
         set(handles.bisectionAEdit, 'enable', 'on');
         set(handles.bisectionBEdit, 'enable', 'on');
-        set(handles.singleVarx0Edit, 'enable', 'off');
     otherwise
         set(handles.bisectionAEdit, 'enable', 'off');
         set(handles.bisectionBEdit, 'enable', 'off');
-        set(handles.singleVarx0Edit, 'enable', 'on');
 end
 
 % Hints: contents = cellstr(get(hObject,'String')) returns singleVarListBox contents as cell array
@@ -270,12 +266,8 @@ function singleVarSolveButton_Callback(hObject, ~, handles)
 % hObject    handle to singleVarSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-
-% Formatting text box
 set(handles.singleVarOutputText, 'Max', 2);
 method = get(handles.singleVarListBox, 'value');
-
-% Receiving input from GUI elements
 syms infxn;
 rawfxn = get(handles.singleVarFunctionEdit, 'string');
 infxn = sym(rawfxn);
@@ -283,25 +275,19 @@ x0 = str2double(get(handles.singleVarx0Edit, 'string'));
 Tol = str2double(get(handles.singleVarToleranceEdit, 'string'));
 r = str2double(get(handles.singleVarRootEdit, 'string'));
 maxIterations = str2double(get(handles.singleVarIterationsEdit, 'string'));
-
-
-
-errFlag = false; % Indicates if the methods have stopped
-
-% Checks for valid/complete input
+xList = zeros();
+errList = zeros();
+errFlag = false;
 if isempty(rawfxn) || isnan(x0) || isnan(Tol) || isnan(maxIterations) || abs(r) == Inf
-    errorString = 'Invalid Input';
+    warning('off', 'symbolic:sym:sym:DeprecateExpressions');
+    errorString = 'Missing Input';
     set(handles.singleVarOutputText, 'string', errorString);
 else
-    % Empty values for later output
-    xList = zeros();
-    errList = zeros();
-    iterations = 0;
     if isnan(r)
-        r = Inf;    % Checks to see if user entered real rool, can run in different manner
+        r = Inf;
     end
-    outhandles = guidata(hObject);  % Passing handles to functions to work with textbox
-    
+    bandles = guidata(hObject);
+    iterations = 0;
     switch method
         case 1
             a = str2double(get(handles.bisectionAEdit, 'string'));
@@ -310,38 +296,29 @@ else
                 rangeErrorString='Missing range input';
                 set(handles.singleVarOutputText, 'string', rangeErrorString);
             else
-                [xList, errList, errFlag, iterations] = Bisection(infxn, a, b, r, Tol, maxIterations, outhandles);
+                [xList, errList, errFlag, iterations] = Bisection(infxn, a, b, r, Tol, maxIterations, bandles);
             end
         case 2
-            [xList, errList, errFlag, iterations] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, outhandles);
+            [xList, errList, errFlag, iterations] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, bandles);
         otherwise
-            [xList, errList, errFlag, iterations] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, outhandles);
+            [xList, errList, errFlag, iterations] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, bandles);
     end
     if errFlag == false
-        calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations);
+        calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), bandles, iterations);
     end
     if r ~= Inf
         combinedList = [xList; errList]';
+        % Implement new 'rowHeader' in 'scrollPane'
         f = figure;
         t = uitable(f);
         set(t,'Data',combinedList); % Use the set command to change the uitable properties.
         set(t,'ColumnName',{'xi', 'Error'})
-        newRowIndices = strings;
-        for j=0:iterations-1
-            newRowIndices(j+1) = num2str(j);
-        end
-        set(t, 'RowName', newRowIndices);
     else
         combinedList = xList';
         f = figure;
         t = uitable(f);
         set(t,'Data',combinedList);
         set(t,'ColumnName',{'xi'})
-        newRowIndices = strings;
-        for j=0:iterations-1
-            newRowIndices(j+1) = num2str(j);
-        end
-        set(t, 'RowName', newRowIndices);
     end
     
 end
@@ -372,7 +349,6 @@ end
 % Single Variable Methods
 %==============================
 
-
 function [xList, errList, errorFlag, i] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
 %Tol = 0.00000001;
 %syms x;
@@ -384,9 +360,6 @@ errorFlag = false;
 %infxn = sym(infxn)
 f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
 fprime = matlabFunction(diff(infxn));   % First derivative of f
-count = zeros();
-difference = zeros();
-ticks = 0;
 
 % For analysis
 dx = 1;
@@ -401,12 +374,7 @@ else
     set(handles.singleVarOutputText, 'string', quadConString);
 end
 
-tic;
-
 for i = 1:maxIterations
-    count(i) = i;
-    tic;
-
     fofx = f(xList(i));
     fpofx = fprime(xList(i));
     
@@ -418,18 +386,6 @@ for i = 1:maxIterations
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
-    difference(i) = xList(i+1) - xList(i)
-    if (difference(i) > 2 && difference(i) < difference(i + 1))
-      ticks = ticks + 1;  
-    end
-    
-    if (ticks > 5)
-        fprintf('The answer is likely diverging.\n');
-    end
-    
-    ei = abs(xList(i) - r);                    % Gets forward error of current iteration
-    iterativeErrorList(i) = ei/(pastError)^2;  % Error in relation to previous iteration
-    
     if r ~= Inf
         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
     end
@@ -439,15 +395,6 @@ for i = 1:maxIterations
     end
 end
 
-count(i+1) = i+1;
-figure
-plot(count, xList);
-xlabel('Iteration');
-ylabel('f(x)');
-title('Newton Method of Single Variable');
-time = toc;
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
 
 % Fixed Point Iteration
 % Receives:
@@ -456,13 +403,11 @@ set(handles.singleVarOutputText, 'string', timeString);
 % iterations = number of iterations
 % Returns list of calculated x values
 
-
 function [xList, errList, errorFlag, i] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, handles)
 %Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
 errorFlag = false;
 errList = zeros;
-
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
@@ -482,11 +427,7 @@ if r ~= Inf
     errList(1) = abs(xList(1) - r);
 end
 % Runs until root approximated or number of iterations reached
-
-tic;
 for i = 1:maxIterations
-    count(i) = i;
-    tic;
     xList(i+1) = f(xList(i));           % Get next x from result of current x
     if r ~= Inf
         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
@@ -496,26 +437,14 @@ for i = 1:maxIterations
         break;
     end
 end
-time = toc;
-count(i+1) = i+1;
-
-figure
-plot(count, xList);
-xlabel('Iteration');
-ylabel('g(x)');
-title('Fixed Point Iteration');
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
 
 %Program 1.1 Bisection Method
 %Computes approximate solution of f(x)=0
 %Input: function handle f; a,b such that f(a)*f(b)<0,
 % and tolerance tol
 %Output: Approximate solution xc
-
 function [cList, errList, errorFlag, i] = Bisection(infxn,a,b,r,tol, maxIterations, handles)
 f = matlabFunction(infxn);
-errorFlag = false;
 if sign(f(a))*sign(f(b)) >= 0
     errorString = 'f(a)f(b)<0, Intermediate Value Theorem not satisfied!'; %ceases exe  cution
     set(handles.singleVarOutputText, 'string', errorString);
@@ -524,16 +453,16 @@ else
     cList = zeros;
     errList = zeros;
     fa=f(a);
-
     %fb=f(b);
-    for i =1:maxIterations
+    i = 1;
+    while (b-a)/2>tol
         cList(i)=(a+b)/2;
         if r ~= Inf
             errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
         end
         
         fc=f(cList(i));
-        if fc == 0 || (b-a)/2<tol               %c is a solution or below the tolerance, done
+        if fc == 0 %c is a solution, done
             break
         end
         if sign(fc)*sign(fa)<0 %a and c make the new interval
@@ -541,21 +470,11 @@ else
         else %c and b make the new interval
             a=cList(i);fa=fc;
         end
-        count(i) = i;
+        
+        i = i + 1;
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
-
 end
-time = toc;
-
-figure
-plot(count, cList);
-xlabel('Iteration');
-ylabel('c');
-title('Bisection');
-timeString = ['Elapsed time = ', num2str(time)];
-set(handles.singleVarOutputText, 'string', timeString);
-
 % function to calculate forward error, backward error, and error
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
@@ -582,7 +501,7 @@ if r ~= Inf
     end
 end
 
-iterationsString = ['Number of Iterations = ', num2str(i-1)];
+iterationsString = ['Number of Iterations = ', num2str(i)];
 bString = 'Backward Error = ';
 currString = get(handles.singleVarOutputText, 'string');
 newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
