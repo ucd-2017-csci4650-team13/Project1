@@ -16,7 +16,7 @@ if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
 else
     gui_mainfcn(gui_State, varargin{:});
-    
+
 end
 % End initialization code - DO NOT EDIT
 
@@ -35,7 +35,7 @@ handles.output = hObject;
 % Settings
 TabFontSize = 8;
 TabNames = {'Single Variable','Linear Systems','Nonlinear Systems'};
-FigWidth = 0.35;
+FigWidth = 0.5;
 
 % Figure resize
 set(handles.SimpleOptimizedTab,'Units','normalized')
@@ -69,11 +69,11 @@ handles.TabsNumber = TabsNumber;
 TabColor = handles.selectedTabColor;
 for i = 1:TabsNumber
     n = num2str(i);
-    
+
     % Get text objects position
     set(handles.(['tab',n,'text']),'Units','normalized')
     pos=get(handles.(['tab',n,'text']),'Position');
-    
+
     % Create axes with callback function
     handles.(['a',n]) = axes('Units','normalized',...
         'Box','on',...
@@ -83,7 +83,7 @@ for i = 1:TabsNumber
         'Position',[pos(1) pos(2) pos(3) pos(4)+0.01],...
         'Tag',n,...
         'ButtonDownFcn',[mfilename,'(''ClickOnTab'',gcbo,[],guidata(gcbo))']);
-    
+
     % Create text with callback function
     handles.(['t',n]) = text('String',TabNames{i},...
         'Units','normalized',...
@@ -95,7 +95,7 @@ for i = 1:TabsNumber
         'Backgroundcolor',TabColor,...
         'Tag',n,...
         'ButtonDownFcn',[mfilename,'(''ClickOnTab'',gcbo,[],guidata(gcbo))']);
-    
+
     TabColor = handles.unselectedTabColor;
 end
 
@@ -301,7 +301,7 @@ else
         r = Inf;    % Checks to see if user entered real rool, can run in different manner
     end
     outhandles = guidata(hObject);  % Passing handles to functions to work with textbox
-    
+
     switch method
         case 1
             a = str2double(get(handles.bisectionAEdit, 'string'));
@@ -343,7 +343,7 @@ else
         end
         set(t, 'RowName', newRowIndices);
     end
-    
+
 end
 
 
@@ -409,27 +409,27 @@ for i = 1:maxIterations
 
     fofx = f(xList(i));
     fpofx = fprime(xList(i));
-    
+
     if(fpofx == 0 || abs(fpofx) == Inf)
         errorString = ['The derivative of the function at ', num2str(xList(i)), ' is 0, try another initial guess'];
         set(handles.singleVarOutputText, 'string', errorString);
         errorFlag = true;
         break;
     end
-    
+
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
     difference(i) = xList(i+1) - xList(i)
     if (difference(i) > 2 && difference(i) < difference(i + 1))
-      ticks = ticks + 1;  
+      ticks = ticks + 1;
     end
-    
+
     if (ticks > 5)
         fprintf('The answer is likely diverging.\n');
     end
-    
+
     ei = abs(xList(i) - r);                    % Gets forward error of current iteration
     iterativeErrorList(i) = ei/(pastError)^2;  % Error in relation to previous iteration
-    
+
     if r ~= Inf
         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
     end
@@ -531,7 +531,7 @@ else
         if r ~= Inf
             errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
         end
-        
+
         fc=f(cList(i));
         if fc == 0 || (b-a)/2<tol               %c is a solution or below the tolerance, done
             break
@@ -966,7 +966,7 @@ for j = 1:n-1 % n-1 = num of rows - the 1st row
         % row multiplier
         multi = augA(i, j) / augA(j, j);
         opCount = opCount + 1;
-        
+
         % subtract multiplier * the row from
         for index = 1:col
             augA(i, index) = (augA(i, index) - (multi * augA(j, index)));
@@ -986,14 +986,14 @@ if errFlag == false
         solutions(q) = solutions(q)/augA(q,q);
         fprintf('\n');
     end
-    
+
     for x = 1:n
         fprintf('x%d = %f\n', x, solutions(x));
     end
     fprintf('\n');
     time = toc;
     fprintf('\n');
-    
+
     opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
     timeString = ['Elapsed Time = ', num2str(time)];
     newString = combineString(condStr, opsString);
@@ -1063,7 +1063,7 @@ for k = 1:n
         temp = P(k, :);
         P(k, :) = P(i, :);
         P(i, :) = temp;
-        
+
         % Lower triangular array
         if k >= 2
             % (k , 1:k-1) means entire row k and columns 1 thru k-1
@@ -1210,7 +1210,7 @@ if size(b) ~= size(x)
 else
     flag = 0;
     count = 1;
-    
+
     % matrix splitting
     % TODO: opCount will be affected by these operations. Need to add.
     D = diag(diag(A));
@@ -1244,7 +1244,7 @@ else
             datasave = [datasave; count, RelForError, flag];
         end
     end
-    
+
     b = b / w; % vector b
     if (RelForError > tol)
         flag = 1;
@@ -1252,25 +1252,25 @@ else
         convStr = 'Did not converge';
         set(handles.lSysOutputText, 'string', convStr);
     end
-    
+
     % for function return
     x = xnew;
     error = RelForError;
     iter = count;
-    
+
     fprintf('Number of operations: %d\n', opCount);
     time = toc;
-    
+
     opsStr = ['Number of Operations = ', num2str(opCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combine(convStr, opsStr);
     newStr = combineString(newStr, timeString);
     set(handles.lSysOutputText, 'string', newStr);
-    
+
     fprintf('\n');
-    
+
     fprintf('  iteration    error    flag\n')
-    
+
     disp(datasave)
     fprintf(' x final\n')
     disp(xnew)
@@ -1278,6 +1278,7 @@ end
 % -------------------------
 % --- NONLINEAR SYSTEMS ---
 % -------------------------
+
 
 % --- Executes on selection change in nonLinearSysListBox.
 function nonLinearSysListBox_Callback(hObject, eventdata, handles)
@@ -1405,74 +1406,6 @@ end
 
 
 
-function nonLinearSysBroydenEqnListEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenEqnListEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nonLinearSysBroydenEqnListEdit as text
-%        str2double(get(hObject,'String')) returns contents of nonLinearSysBroydenEqnListEdit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function nonLinearSysBroydenEqnListEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenEqnListEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function nonLinearSysBroydenGuessEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenGuessEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nonLinearSysBroydenGuessEdit as text
-%        str2double(get(hObject,'String')) returns contents of nonLinearSysBroydenGuessEdit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function nonLinearSysBroydenGuessEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenGuessEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
-
-function nonLinearSysBroydenIterationsEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenIterationsEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nonLinearSysBroydenIterationsEdit as text
-%        str2double(get(hObject,'String')) returns contents of nonLinearSysBroydenIterationsEdit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function nonLinearSysBroydenIterationsEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenIterationsEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-
 % --- Executes on button press in nonLinearMultiVarSolveButton.
 function nonLinearMultiVarSolveButton_Callback(hObject, eventdata, handles)
 % hObject    handle to nonLinearMultiVarSolveButton (see GCBO)
@@ -1480,7 +1413,8 @@ function nonLinearMultiVarSolveButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of nonLinearMultiVarSolveButton
-
+method = get(handles.nonLinearSysListBox, 'value');
+disp(method);
 %get variable list
 variables = get(handles.nonLinearSysVarsListEdit, 'string');
 ca = {};
@@ -1493,7 +1427,7 @@ variables = char(variables);
 for i=1:length(variables)
     ca{i} = variables(i);
 end
-celldisp(ca);
+% celldisp(ca);
 
 %convert each char to sym type
 vars = cell2sym(ca);
@@ -1503,27 +1437,73 @@ end
 
 %GET initial guess
 x = str2num(get(handles.nonLinearSysInitialGuessEdit, 'string'));
-disp(x);
+% disp(x);
+
+%GET initial matrix
+A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
 
 %GET system of equations
 eqn_str = get(handles.nonLinearSysEqnListEdit, 'string');
 eqns = sym(eqn_str);
-disp(eqns);
+% disp(eqns);
 
 %GET number of iterations
 number_of_iterations = str2double(get(handles.nonLinearSySIterationsEdit, 'string'));
-disp(number_of_iterations);
+% disp(number_of_iterations);
 
-%pass parameters to MultiVarNewton
-Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations);
+switch method
+    case 1
+        [appr_x] = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations);
+        [forward, backward]=find_error(appr_x, x, eqns,vars);
+        forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
+        backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
 
-function  Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations)
+        appr_x = sprintf('%0.5f, ',appr_x);
+        appr_x = appr_x(1:end-2);
+
+        answer = ['Approximate root: ', appr_x];
+        string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
+
+        set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
+
+    case 2
+        [appr_x] = Broyden_1_Method(x, vars, eqns, A, number_of_iterations);
+
+        [forward, backward]=find_error(appr_x, x, eqns,vars);
+        forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
+        backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
+
+        appr_x = sprintf('%0.5f, ',appr_x);
+        appr_x = appr_x(1:end-2);
+
+        answer = ['Approximate root: ', appr_x];
+        string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
+
+         set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
+
+    otherwise
+        [appr_x] = Broyden_2_Method(x, vars, eqns, A, number_of_iterations);
+        [forward, backward]=find_error(appr_x, x, eqns,vars);
+        forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
+        backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
+
+        appr_x = sprintf('%0.5f, ',appr_x);
+        appr_x = appr_x(1:end-2);
+
+        answer = ['Approximate root: ', appr_x];
+        string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
+
+         set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
+end
+
+function x = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations)
 %create a Jacobian matrix
 DF = jacobian(eqns, vars);
 disp(DF);
 x_values = zeros(1,100);
 y_values = zeros(1,100);
 t = zeros(1,100);
+
 %begin iteration steps for calculating the solution of the system
 for i=1:number_of_iterations
     disp('iteration: ');
@@ -1531,37 +1511,37 @@ for i=1:number_of_iterations
     %solve for the solution set, s, to plug into later
     tic;
     a = zeros(length(eqns),1);
-    
+
     for j=1:length(eqns)
         answer = subs(eqns(j), vars, x);
         a(j) = single(answer);
     end %end of solution set loop
-    
-    
+
+
     %solve for the constants in the Jacobian matrix
     %find values of Jacobian with starting point
     sol_matrix = subs(DF, vars, x);
-    
+
     %a = array containing the solution variables [s1, s2, s3...],
     %sol_matrix = solution matrix to solve for the solution set (s1, s2, s3...)
     %solve the linear system of equations this will output the solution set
     %{'a', 'b'}
     %[1,1]
-    
+
     %[(a+b), (a+(-b)), (a+b^2)]
     %
-    
+
     sol_set = linsolve(sol_matrix, a);
     if(isinf(sol_set))
         warning('The system of equations does not converge')
         return
     end
     sol_set = double(sol_set);
-    
+
     %reshape to a 1D array for easy subtraction
     sol_set = reshape(sol_set, [1, numel(a)]);
-    
-    
+
+
     %solve xk = x(k-1) + s --> xk
     x_values(i) = x(1);
     y_values(i) = x(2);
@@ -1575,7 +1555,7 @@ for i=1:number_of_iterations
         subplot(2,1,1)       % add first plot in 2 x 1 grid
         plot(x_values,y_values)
         title('Convergence or Divergence')
-        
+
         subplot(2,1,2)       % add second plot in 2 x 1 grid
         plot(t)       % plot using + markers
         title('TIme Complexity')
@@ -1591,21 +1571,18 @@ for i=1:number_of_iterations
             end
         end
     end
-    
-    
+
+
     %show the solution at the end of each step[[2*u^2 + v^2 + 3*w^2 + 6*w - 4*u + 2],[3*u^2 - 12*u + v^2 + 3*w^2 + 8], [u^2 + v^2 - 2*v + 2*w^2 - 5]]
     t(i) = toc;
 end %repeat k times end of iteration loop
 
 if(diverge == 1)
     disp('the solution appears to be diverging')
-    
-    
+
+
 end
-% plot(x_values, y_values)
-% drawnow()
-% plot(t)
-% drawnow()
+
 figure
 subplot(2,1,1)       % add first plot in 2 x 1 grid
 plot(x_values,y_values)
@@ -1617,36 +1594,21 @@ title('Time Complexity')
 
 
 
-% --- Executes on button press in nonLinearSysBroyden1SolveButton.
-function nonLinearSysBroyden1SolveButton_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroyden1SolveButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of nonLinearSysBroyden1SolveButton
-x_i = str2num(get(handles.nonLinearSysBroydenGuessEdit, 'string'));
-disp(x_i);
-eqns = get(handles.nonLinearSysBroydenEqnListEdit, 'string');
-eqns = strsplit(eqns, ';');
-for i=1:length(eqns)
-    eqns{i} = strtrim(eqns{i});
-    eqns{i} = str2func(eqns{i});
-end
-disp(eqns);
-A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
-disp(A);
-number_of_iterations = str2double(get(handles.nonLinearSysBroydenIterationsEdit, 'string'));
-disp(number_of_iterations);
-Broyden_1_Method(x_i, eqns, A, number_of_iterations);
-
-function Broyden_1_Method(x_i, eqns, A, number_of_iterations)
+function x1 = Broyden_1_Method(x_i, vars, eqns, A, number_of_iterations)
 %evaluate the functions at x
 %{(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
-x = num2cell(x_i);
-y1 = cellfun(@(t) t(x{:}), eqns);
+
+%y1 = cellfun(@(t) t(x{:}), eqns);
+y1 = zeros(length(eqns),1);
+
+for j=1:length(eqns)
+    answer = subs(eqns(j), vars, x_i);
+    y1(j) = single(answer);
+end %end of solution set loop
 x1 = x_i;
 x1 = transpose(x1);
-y1 = transpose(y1);
+% y1 = transpose(y1);
 x_values = zeros(1,100);
 y_values = zeros(1,100);
 t = zeros(1,100);
@@ -1659,9 +1621,12 @@ for i=1:number_of_iterations
     tic;
     x1 = x - A\y;
     disp(x1);
-    x_val = num2cell(x1);
-    
-    y1 = cellfun(@(t) t(x_val{:}), eqns);
+    %x_val = num2cell(x1);
+    y1 = zeros(length(eqns),1);
+    for j=1:length(eqns)
+        answer = subs(eqns(j), vars, transpose(x1));
+        y1(j) = single(answer);
+    end %end of solution set loop
     if(round(y1, 10) == 0)
         disp('solution found at x = ')
         disp(vpa(x1,10))
@@ -1672,8 +1637,8 @@ for i=1:number_of_iterations
         ylabel('Time to Compute (s)')
         return
     end
-    y1 = transpose(y1);
-    
+%     y1 = transpose(y1);
+
     %calculate new matrix A
     deltaY = y1 - y;
     deltaX = x1 - x;
@@ -1710,36 +1675,20 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in nonLinearSysBroyden2SolveButton.
-function nonLinearSysBroyden2SolveButton_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroyden2SolveButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
-% Hint: get(hObject,'Value') returns toggle state of nonLinearSysBroyden2SolveButton
-x_i = str2num(get(handles.nonLinearSysBroydenGuessEdit, 'string'));
-disp(x_i);
-eqns = get(handles.nonLinearSysBroydenEqnListEdit, 'string');
-eqns = strsplit(eqns, ';');
-for i=1:length(eqns)
-    eqns{i} = strtrim(eqns{i});
-    eqns{i} = str2func(eqns{i});
-end
-disp(eqns);
-A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
-disp(A);
-number_of_iterations = str2double(get(handles.nonLinearSysBroydenIterationsEdit, 'string'));
-disp(number_of_iterations);
-Broyden_2_Method(x_i, eqns, A, number_of_iterations);
-
-function Broyden_2_Method(x_i, eqns, B, number_of_iterations)
+function x1 = Broyden_2_Method(x_i, vars, eqns, B, number_of_iterations)
 %evaluate the functions at x
 %{(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
-x = num2cell(x_i);
-y1 = cellfun(@(t) t(x{:}), eqns);
+disp(x_i)
+y1 = zeros(length(eqns),1);
+for j=1:length(eqns)
+    answer = subs(eqns(j), vars, x_i);
+    y1(j) = single(answer);
+end %end of solution set loop
+%y1 = cellfun(@(t) t(x{:}), eqns);
 x1 = x_i;
 x1 = transpose(x1);
-y1 = transpose(y1);
+% y1 = transpose(y1);
 t = zeros(1,100);
 %begin iteration steps
 for i=1:number_of_iterations
@@ -1747,9 +1696,13 @@ for i=1:number_of_iterations
     y = y1;
     tic;
     x1 = x - B*y;
-    x_val = num2cell(x1);
+
     display(x1);
-    y1 = cellfun(@(t) t(x_val{:}), eqns);
+    y1 = zeros(length(eqns),1);
+    for j=1:length(eqns)
+        answer = subs(eqns(j), vars, transpose(x1));
+        y1(j) = single(answer);
+    end %end of solution set loop
     if(round(y1, 10) == 0)
         disp('solution found at x = ')
         disp(vpa(x1,10))
@@ -1761,8 +1714,8 @@ for i=1:number_of_iterations
         drawnow()
         return
     end
-    y1 = transpose(y1);
-    
+    %y1 = transpose(y1);
+
     %calculate new matrix B
     deltaY = y1 - y;
     deltaX = x1 - x;
@@ -1774,7 +1727,7 @@ for i=1:number_of_iterations
     t(i) = toc;
 end
 figure, plot(t)
-%>>>>>>> origin/master
+
 
 
 
@@ -1790,6 +1743,35 @@ function lSysOutputText_Callback(hObject, eventdata, handles)
 % --- Executes during object creation, after setting all properties.
 function lSysOutputText_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to lSysOutputText (see GCBO)
+=======
+
+function [forward, backward]=find_error(xa, x, eqns,vars)
+%forward error
+forward = norm((x - xa),inf);
+
+%backward error
+y1 = zeros(1,length(eqns));
+for j=1:length(eqns)
+    answer = subs(eqns(j), vars, x);
+    y1(j) = single(answer);
+end %end of solution set loop
+backward = norm(y1, inf);
+
+
+
+function nonLinearSysOutput_Callback(hObject, eventdata, handles)
+% hObject    handle to nonLinearSysOutput (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of nonLinearSysOutput as text
+%        str2double(get(hObject,'String')) returns contents of nonLinearSysOutput as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function nonLinearSysOutput_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to nonLinearSysOutput (see GCBO)
+>>>>>>> gui_figure
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    empty - handles not created until after all CreateFcns called
 
@@ -1798,3 +1780,27 @@ function lSysOutputText_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+
+% --- Executes on slider movement.
+function slider3_Callback(hObject, eventdata, handles)
+% hObject    handle to slider3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'Value') returns position of slider
+%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
+
+
+% --- Executes during object creation, after setting all properties.
+function slider3_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to slider3 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: slider controls usually have a light gray background.
+if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor',[.9 .9 .9]);
+end
+>>>>>>> gui_figure
