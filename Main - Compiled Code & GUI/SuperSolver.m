@@ -1447,6 +1447,10 @@ eqn_str = get(handles.nonLinearSysEqnListEdit, 'string');
 eqns = sym(eqn_str);
 % disp(eqns);
 
+%GET actual root
+root = str2num(get(handles.nonLinearSysRootEdit, 'string'));
+
+
 %GET number of iterations
 number_of_iterations = str2double(get(handles.nonLinearSySIterationsEdit, 'string'));
 % disp(number_of_iterations);
@@ -1454,7 +1458,7 @@ number_of_iterations = str2double(get(handles.nonLinearSySIterationsEdit, 'strin
 switch method
     case 1
         [appr_x] = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations);
-        [forward, backward]=find_error(appr_x, x, eqns,vars);
+        [forward, backward]=find_error(appr_x, root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
 
@@ -1469,7 +1473,7 @@ switch method
     case 2
         [appr_x] = Broyden_1_Method(x, vars, eqns, A, number_of_iterations);
 
-        [forward, backward]=find_error(appr_x, x, eqns,vars);
+        [forward, backward]=find_error(appr_x, root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
 
@@ -1483,7 +1487,7 @@ switch method
 
     otherwise
         [appr_x] = Broyden_2_Method(x, vars, eqns, A, number_of_iterations);
-        [forward, backward]=find_error(appr_x, x, eqns,vars);
+        [forward, backward]=find_error(appr_x, root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
 
@@ -1627,9 +1631,9 @@ for i=1:number_of_iterations
         answer = subs(eqns(j), vars, transpose(x1));
         y1(j) = single(answer);
     end %end of solution set loop
-    if(round(y1, 10) == 0)
+    if(round(y1, 16) == 0)
         disp('solution found at x = ')
-        disp(vpa(x1,10))
+        disp(vpa(x1,16))
         disp('correct to 10 decimals digits')
         plot(t)
         title('Time Complexity Graph')
@@ -1650,6 +1654,9 @@ for i=1:number_of_iterations
     t(i) = toc;
 end
 figure, plot(t)
+title('Time vs Iterations')
+xlabel('Iterations')
+ylabel('Time to Compute (s)')
 
 
 
@@ -1727,6 +1734,9 @@ for i=1:number_of_iterations
     t(i) = toc;
 end
 figure, plot(t)
+title('Time vs Iterations')
+xlabel('Iterations')
+ylabel('Time to Compute (s)')
 
 
 
@@ -1804,3 +1814,25 @@ if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColo
     set(hObject,'BackgroundColor',[.9 .9 .9]);
 end
 
+
+
+function nonLinearSysRootEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to nonLinearSysRootEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of nonLinearSysRootEdit as text
+%        str2double(get(hObject,'String')) returns contents of nonLinearSysRootEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function nonLinearSysRootEdit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to nonLinearSysRootEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
