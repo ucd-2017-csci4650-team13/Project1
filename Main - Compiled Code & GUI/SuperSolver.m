@@ -1234,7 +1234,8 @@ function nonLinearMultiVarSolveButton_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of nonLinearMultiVarSolveButton
-method = get(handles.singleVarListBox, 'value');
+method = get(handles.nonLinearSysListBox, 'value');
+disp(method);
 %get variable list
 variables = get(handles.nonLinearSysVarsListEdit, 'string');
 ca = {};
@@ -1247,7 +1248,7 @@ variables = char(variables);
 for i=1:length(variables)
     ca{i} = variables(i); 
 end
-celldisp(ca);
+% celldisp(ca);
 
 %convert each char to sym type
 vars = cell2sym(ca);
@@ -1257,19 +1258,33 @@ end
 
 %GET initial guess
 x = str2num(get(handles.nonLinearSysInitialGuessEdit, 'string'));
-disp(x);
+% disp(x);
+
+%GET initial matrix
+A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
 
 %GET system of equations
 eqn_str = get(handles.nonLinearSysEqnListEdit, 'string');
 eqns = sym(eqn_str);
-disp(eqns);
+% disp(eqns);
 
 %GET number of iterations
 number_of_iterations = str2double(get(handles.nonLinearSySIterationsEdit, 'string'));
-disp(number_of_iterations);
+% disp(number_of_iterations);
 
-%pass parameters to MultiVarNewton
-Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations);
+switch method
+    case 1
+        
+        Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations);
+    case 2
+        
+        Broyden_1_Method(x, vars, eqns, A, number_of_iterations);
+    otherwise
+   
+        Broyden_2_Method(x, vars, eqns, A, number_of_iterations);
+end
+
+
 
 function  Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations)
 %create a Jacobian matrix
@@ -1503,27 +1518,52 @@ function nonLinearSysBroyden2SolveButton_Callback(hObject, eventdata, handles)
 % Hint: get(hObject,'Value') returns toggle state of nonLinearSysBroyden2SolveButton
 x_i = str2num(get(handles.nonLinearSysBroydenGuessEdit, 'string'));
 disp(x_i);
-eqns = get(handles.nonLinearSysBroydenEqnListEdit, 'string');
-eqns = strsplit(eqns, ';');
-for i=1:length(eqns)
-    eqns{i} = strtrim(eqns{i});
-    eqns{i} = str2func(eqns{i});
+
+variables = get(handles.nonLinearSysVarsListEdit, 'string');
+ca = {};
+
+%remove white spaces and convert string to char array
+variables(variables==' ') = [];
+variables = char(variables); 
+
+%load each variable into a cell
+for i=1:length(variables)
+    ca{i} = variables(i); 
 end
-disp(eqns);
+
+
+%convert each char to sym type
+vars = cell2sym(ca);
+for i=1:length(variables)
+     syms(variables(i))
+end
+
+eqns = get(handles.nonLinearSysBroydenEqnListEdit, 'string');
+% eqns = strsplit(eqns, ';');
+% for i=1:length(eqns)
+%     eqns{i} = strtrim(eqns{i});
+%     eqns{i} = str2func(eqns{i});
+% end
+eqns = sym(eqns);
 A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
 disp(A);
 number_of_iterations = str2double(get(handles.nonLinearSysBroydenIterationsEdit, 'string'));
 disp(number_of_iterations);
-Broyden_2_Method(x_i, eqns, A, number_of_iterations);
+Broyden_2_Method(x_i, vars, eqns, A, number_of_iterations);
 
-function Broyden_2_Method(x_i, eqns, B, number_of_iterations)
+function Broyden_2_Method(x_i, vars, eqns, B, number_of_iterations)
 %evaluate the functions at x
 %{(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
-x = num2cell(x_i);
-y1 = cellfun(@(t) t(x{:}), eqns);
+disp(x_i)
+y1 = zeros(length(eqns),1);
+for j=1:length(eqns)
+    answer = subs(eqns(j), vars, x_i);
+    y1(j) = single(answer);
+end %end of solution set loop
+%y1 = cellfun(@(t) t(x{:}), eqns);
 x1 = x_i;
 x1 = transpose(x1);
-y1 = transpose(y1);
+% y1 = transpose(y1);
 t = zeros(1,100);
 %begin iteration steps
 for i=1:number_of_iterations
@@ -1531,9 +1571,14 @@ for i=1:number_of_iterations
     y = y1;
     tic;
     x1 = x - B*y;
-    x_val = num2cell(x1);
+ 
     display(x1);
-    y1 = cellfun(@(t) t(x_val{:}), eqns);
+    y1 = zeros(length(eqns),1);
+    for j=1:length(eqns)
+        answer = subs(eqns(j), vars, transpose(x1));
+        y1(j) = single(answer);
+    end %end of solution set loop
+    %y1 = cellfun(@(t) t(x_val{:}), eqns);
     if(round(y1, 10) == 0)
         disp('solution found at x = ')
         disp(vpa(x1,10))
@@ -1545,7 +1590,7 @@ for i=1:number_of_iterations
         drawnow()
         return
     end
-    y1 = transpose(y1);
+    %y1 = transpose(y1);
     
     %calculate new matrix B
     deltaY = y1 - y;
