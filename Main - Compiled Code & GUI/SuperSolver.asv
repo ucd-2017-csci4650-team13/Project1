@@ -381,8 +381,22 @@ else
         calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations);
     end
     if length(xList) > 1
-        f = figure;
+        f = figure(1);
         t = uitable(f);
+        %figure
+        iList = 0:iterations;
+        iList
+        xList
+        subplot(1,2,1)
+        pos = get(subplot(1,2,2),'position');
+        delete(subplot(1,2,2));
+        set(t, 'units', 'normalized');
+        set(t, 'position', pos)
+        plot(iList, xList);
+        xlabel('Iteration');
+        ylabel('x');
+        set(gca, 'xtick', 0:iterations+1);
+        title('X Through Iterations');
         newRowIndices = strings;
         for j=0:iterations-1
             newRowIndices(j+1) = num2str(j);
@@ -398,6 +412,8 @@ else
             for s = 1:iterations+1
                 errStrings(s) = cellstr(num2str(errList(s), '%20.16f'));
             end
+            xStrings
+            errStrings
             combinedList = [xStrings; errStrings]';
             set(t,'Data',combinedList); % Use the set command to change the uitable properties.
             set(t,'ColumnName',{'xi', 'Error'})
@@ -466,9 +482,6 @@ for i = 1:maxIterations
         break;
     end
     
-    if (ticks > 5)
-        fprintf('The answer is likely diverging.\n');
-    end
     if r ~= Inf
         errList(i+1) = abs(xList(i+1) - r);                % Gets forward error of current iteration
     end
@@ -478,13 +491,13 @@ for i = 1:maxIterations
     end
 end
 
-iCount(i+1) = i;
-figure
-plot(iCount, xList);
-set(gca, 'xtick', 0:i);
-xlabel('Iteration');
-ylabel('x');
-title('Newton''s Method for Single Variable');
+% iCount(i+1) = i;
+% figure
+% plot(iCount, xList);
+% set(gca, 'xtick', 0:i);
+% xlabel('Iteration');
+% ylabel('x');
+% title('Newton''s Method for Single Variable');
 
 % Fixed Point Iteration
 % Receives:
@@ -521,7 +534,6 @@ if r ~= Inf
 end
 % Runs until root approximated or number of iterations reached
 
-tic;
 for i = 1:maxIterations
     iCount(i) = i-1;
     xList(i+1) = f(xList(i));           % Get next x from result of current x
@@ -546,14 +558,14 @@ for i = 1:maxIterations
         break;
     end
 end
-iCount(i+1) = i;
+%iCount(i+1) = i;
 
-figure
-plot(iCount, xList);
-xlabel('Iteration');
-ylabel('x');
-set(gca, 'xtick', 0:i);
-title('Fixed Point Iteration');
+% figure
+% plot(iCount, xList);
+% xlabel('Iteration');
+% ylabel('x');
+% set(gca, 'xtick', 0:i);
+% title('Fixed Point Iteration');
 
 %Program 1.1 Bisection Method
 %Computes approximate solution of f(x)=0
@@ -566,6 +578,7 @@ f = matlabFunction(infxn);
 errorFlag = false;
 iCount = zeros;
 cList = zeros;
+
 errList = zeros;
 i = 0;
 
@@ -578,11 +591,11 @@ else
     fa=f(a);
     
     %fb=f(b);
-    for i =1:maxIterations
+    for i = 1:maxIterations
         iCount(i) = i-1;
         cList(i)=(a+b)/2;
         if r ~= Inf
-            errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+            errList(i) = abs(cList(i) - r);                % Gets forward error of current iteration
         end
         
         fc=f(cList(i));
@@ -598,15 +611,15 @@ else
     cList(i)=(a+b)/2; %new midpoint is best estimate
     
 end
-
-if errorFlag ~= true
-    figure
-    plot(iCount, cList);
-    set(gca, 'xtick', 0:i);
-    xlabel('Iteration');
-    ylabel('c');
-    title('Bisection');
-end
+i = i - 1;
+% if errorFlag ~= true
+%     figure
+%     plot(iCount, cList);
+%     set(gca, 'xtick', 0:i);
+%     xlabel('Iteration');
+%     ylabel('c');
+%     title('Bisection');
+% end
 % function to calculate forward error, backward error, and error
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
@@ -767,10 +780,10 @@ else
     columnNames(i+1) = 'b';
     figure,
     pos = get(gcf,'position');
-    set(gcf,'position',[pos(1:2) [660 120]])
+    %set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
     tableInput = uitable('ColumnWidth',{50},...
-        'Position',[30 20 600 80], ...
+        'Position',[0 0 pos(3) pos(4)],...% 600 80], ...
         'data',dataInput, ...
         'columnName', columnNames,...
         'ColumnEditable',true);
@@ -850,15 +863,16 @@ else
     figure,
     pos = get(gcf,'position');
     columnNames = strings;
-    for i = 1:rows
+    for i = 1:vars
         columnNames(i) = ['x',num2str(i)];
     end
-    set(gcf,'position',[pos(1:2) [660 120]])
+    %set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
     initialMatrixInput = uitable('ColumnWidth',{70},...
-        'Position',[30 20 600 80], ...
+        'Position',[0 0 pos(3) pos(4)],...% 600 80], ...
         'data',dataInput, ...
         'columnName', columnNames, ...
+        'rowName', 'Guesses',...
         'ColumnEditable',true);
 end
 
@@ -1356,7 +1370,7 @@ switch method
         
         answer = ['Approximate root: ', appr_x];
         string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
-                currStr = get(handles.nonLinearSysOutput, 'string');
+        currStr = get(handles.nonLinearSysOutput, 'string');
         string = combineString(currStr, string);
         set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
         
@@ -1634,3 +1648,63 @@ function nonLinearSysRootEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+%========================
+% Menu Bar Functionality
+%========================
+
+% --------------------------------------------------------------------
+function FileMenuButton_Callback(hObject, eventdata, handles)
+% hObject    handle to FileMenuButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function HelpMenuTag_Callback(hObject, eventdata, handles)
+% hObject    handle to HelpMenuTag (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function exitMenuChoice_Callback(hObject, eventdata, handles)
+% hObject    handle to exitMenuChoice (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+
+% --------------------------------------------------------------------
+function svHelpMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to svHelpMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+helpString = sprintf('Input values into their corresponding fields.\nIf the real root is unknown, it can be left blank.\nThen click solve and the selected algorithm will run.');
+helpdlg(helpString,...
+    'Single Variables');
+
+
+% --------------------------------------------------------------------
+function lsHelpMenu_Callback(~, ~, ~)
+% hObject    handle to lsHelpMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+helpString = sprintf('Input values into their corresponding fields.\nThen generate a matrix to fill with the coefficients of the function based on the number of variables specified.\nFor Jacobi and SOR, generate and fill the inital vector in the same manner.');
+helpdlg(helpString,...
+    'Linear Systems');
+
+
+% --------------------------------------------------------------------
+function nlsHelpMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to nlsHelpMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+helpString = sprintf('Input values into their corresponding fields.\nInput a list of variable identifers that will be used in the functions.\nAfterwards, input the functions and other values using Matlab Matrix notation.\nInput must be in square brackets []\nRows are separated by a semicolon.');
+helpdlg(helpString,...
+    'Noninear Systems');
+
+% --------------------------------------------------------------------
+function aboutMenu_Callback(hObject, eventdata, handles)
+% hObject    handle to aboutMenu (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
