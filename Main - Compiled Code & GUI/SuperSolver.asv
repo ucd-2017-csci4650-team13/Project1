@@ -325,6 +325,7 @@ function singleVarSolveButton_Callback(hObject, ~, handles)
 
 % Formatting text box
 set(handles.singleVarOutputText, 'Max', 5);
+set(handles.singleVarOutputText, 'string', '');
 method = get(handles.singleVarListBox, 'value');
 
 % Receiving input from GUI elements
@@ -385,13 +386,12 @@ else
         t = uitable(f);
         %figure
         iList = 0:iterations;
-        iList
-        xList
         subplot(1,2,1)
         pos = get(subplot(1,2,2),'position');
         delete(subplot(1,2,2));
         set(t, 'units', 'normalized');
         set(t, 'position', pos)
+        set(t, 'ColumnWidth', {110 110});
         plot(iList, xList);
         xlabel('Iteration');
         ylabel('x');
@@ -412,8 +412,6 @@ else
             for s = 1:iterations+1
                 errStrings(s) = cellstr(num2str(errList(s), '%20.16f'));
             end
-            xStrings
-            errStrings
             combinedList = [xStrings; errStrings]';
             set(t,'Data',combinedList); % Use the set command to change the uitable properties.
             set(t,'ColumnName',{'xi', 'Error'})
@@ -521,7 +519,7 @@ fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
 fprimeofr = fprime(r);
 if abs(fprimeofr) > 1
-    set(handles.singleVarOutputText, 'string', 'FPI may not converge')
+    set(handles.singleVarOutputText, 'string', 'Since |g''(r)| FPI may not converge')
 elseif fprimeofr == 0
     set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
 else
@@ -1669,6 +1667,7 @@ function HelpMenuTag_Callback(hObject, eventdata, handles)
 
 % --------------------------------------------------------------------
 function exitMenuChoice_Callback(hObject, eventdata, handles)
+close all;
 % hObject    handle to exitMenuChoice (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1699,7 +1698,7 @@ function nlsHelpMenu_Callback(hObject, eventdata, handles)
 % hObject    handle to nlsHelpMenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-helpString = sprintf('Input values into their corresponding fields.\nInput a list of variable identifers that will be used in the functions.\nAfterwards, input the functions and other values using Matlab Matrix notation.\nInput must be in square brackets []\nRows are separated by a semicolon.');
+helpString = sprintf('Input values into their corresponding fields.\nInput a list of variable identifers that will be used in the functions.\nAfterwards, input the functions and other values using Matlab Matrix notation.\nInput must be in square brackets []\nInput is done in rows with elements separated by a space.\nRows are then separated by a semicolon.');
 helpdlg(helpString,...
     'Noninear Systems');
 
@@ -1708,3 +1707,6 @@ function aboutMenu_Callback(hObject, eventdata, handles)
 % hObject    handle to aboutMenu (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+aboutString = sprintf('This program calculates roots and solutions to functions using the following methods:\nSingle Variables: Bisection, Fixed-Point Iteration, Newton''s\nLinear Systems:Gaussian Elimination, LU Decomposition, Jacobi, Successive-Over-Relaxation\nNonlinear Systems: Multivariate Newton''s, Broyden I, BroydenII.\n\nContributors to this program are:\nApril Hudspeth\nSarah Jansen\nLatisha Konz\nLong Truong\nRui Zhang');
+helpdlg(aboutString,...
+    'Noninear Systems');

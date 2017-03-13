@@ -46,6 +46,8 @@ handles = TabsFun(handles,TabFontSize,TabNames);
 
 % Update handles structure
 guidata(hObject, handles);
+set(handles.singleVarOutputText, 'Max', 5);
+set(handles.lSysOutputText, 'Max', 5);
 set(handles.linearSysGuessButton, 'enable', 'off');
 set(handles.omegaEdit, 'enable', 'off');
 set(handles.singleVarx0Edit, 'enable', 'off');
@@ -325,6 +327,7 @@ function singleVarSolveButton_Callback(hObject, ~, handles)
 
 % Formatting text box
 set(handles.singleVarOutputText, 'Max', 5);
+set(handles.singleVarOutputText, 'string', '');
 method = get(handles.singleVarListBox, 'value');
 
 % Receiving input from GUI elements
@@ -385,13 +388,12 @@ else
         t = uitable(f);
         %figure
         iList = 0:iterations;
-        iList
-        xList
         subplot(1,2,1)
         pos = get(subplot(1,2,2),'position');
         delete(subplot(1,2,2));
         set(t, 'units', 'normalized');
         set(t, 'position', pos)
+        set(t, 'ColumnWidth', {110 110});
         plot(iList, xList);
         xlabel('Iteration');
         ylabel('x');
@@ -412,8 +414,6 @@ else
             for s = 1:iterations+1
                 errStrings(s) = cellstr(num2str(errList(s), '%20.16f'));
             end
-            xStrings
-            errStrings
             combinedList = [xStrings; errStrings]';
             set(t,'Data',combinedList); % Use the set command to change the uitable properties.
             set(t,'ColumnName',{'xi', 'Error'})
@@ -521,7 +521,8 @@ fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
 fprimeofr = fprime(r);
 if abs(fprimeofr) > 1
-    set(handles.singleVarOutputText, 'string', 'FPI may not converge')
+    divStr = ['Since |g''(r)| = ', num2str(abs(fprimeofr)), ' > 1, FPI may not converge'];
+    set(handles.singleVarOutputText, 'string', divStr);
 elseif fprimeofr == 0
     set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
 else
@@ -792,58 +793,73 @@ end
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, ~, handles)
 linHandles = guidata(hObject);
+emptyFlag = false;
 global tableInput;
 global initialMatrixInput;
 
-retrievedData = get(tableInput, 'data');
-augA = str2double(retrievedData);
-method = get(handles.linearSysListBox, 'value');
-Tol = str2double(get(handles.linearSysTolEdit, 'string'));
-omega = str2double(get(handles.omegaEdit, 'string'));
-iterations = str2double(get(handles.linearSysIterEdit, 'string'));
-set(handles.lSysOutputText, 'Max', 2);
-rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'));
-
-if isnan(Tol) || isnan(iterations)
-    fprintf('Need Input')
-else
-    set(handles.SimpleOptimizedTab, 'HandleVisibility', 'off');
-    close all;
-    set(handles.SimpleOptimizedTab, 'HandleVisibility', 'on');
-    sol = [];
-    errFlag = true;
-    switch method
-        case 1
-            [sol, errFlag] = Gauss_Elim(augA, linHandles);
-        case 2
-            [sol, errFlag] = LU_Decomposition(augA, linHandles);
-        case 3
-            retrievedGuess = get(initialMatrixInput, 'data');
-            P = str2double(retrievedGuess);
-            [sol, errFlag] = Jacobi(augA, P, linHandles);
-        otherwise
-            if isnan(omega)
-                errStr = 'need input';
-                set(handles.lSysOutputText, 'string', errStr);
-            else
-                retrievedGuess = get(initialMatrixInput, 'data');
-                x0 = str2double(retrievedGuess);
-                [sol, errFlag] = SOR(augA, x0, omega, iterations, Tol, linHandles);
-            end
-    end
-    if errFlag ~= true
-        rowNames = strings;
-        for i = 1:rows
-            rowNames(i) = ['x',num2str(i)];
-        end
-        f = figure;
-        t = uitable(f);
-        set(t, 'Data', sol');
-        set(t, 'RowName', rowNames);
-        set(t, 'ColumnName', 'Solutions');
-    end
+try
+    retrievedData = get(tableInput, 'data');
+catch
+    set(handles.lSysOutputText, 'string', 'Error: Missing matrix input.');
+    emptyFlag = true;
 end
 
+if emptyFlag == false
+    augA = str2double(retrievedData);
+    method = get(handles.linearSysListBox, 'value');
+    Tol = str2double(get(handles.linearSysTolEdit, 'string'));
+    omega = str2double(get(handles.omegaEdit, 'string'));
+    iterations = str2double(get(handles.linearSysIterEdit, 'string'));
+    set(handles.lSysOutputText, 'Max', 2);
+    rows = str2double(get(handles.linearSysNumOfVarEdit, 'string'));
+    
+    if isnan(Tol) || isnan(iterations)
+        fprintf('Need Input')
+    else
+        sol = [];
+        errFlag = false;
+        switch method
+            case 1
+                [sol, errFlag] = Gauss_Elim(augA, linHandles);
+            case 2
+                [sol, errFlag] = LU_Decomposition(augA, linHandles);
+            case 3
+                 try
+                    retrievedGuess = get(initialMatrixInput, 'data');
+                 catch
+                    set(handles.lSysOutputText, 'string', 'Error: missing guess matrix input');
+                     errFlag = true;
+                 end
+                if errFlag == false
+                    P = str2double(retrievedGuess);
+                    [sol, errFlag] = Jacobi(augA, P, linHandles);
+                end
+            otherwise
+                if isnan(omega)
+                    errStr = 'need input';
+                    set(handles.lSysOutputText, 'string', errStr);
+                else
+                    retrievedGuess = get(initialMatrixInput, 'data');
+                    x0 = str2double(retrievedGuess);
+                    [sol, errFlag] = SOR(augA, x0, omega, iterations, Tol, linHandles);
+                end
+        end
+        set(handles.SimpleOptimizedTab, 'HandleVisibility', 'off');
+        close all;
+        set(handles.SimpleOptimizedTab, 'HandleVisibility', 'on');
+        if errFlag ~= true
+            rowNames = strings;
+            for i = 1:rows
+                rowNames(i) = ['x',num2str(i)];
+            end
+            f = figure;
+            t = uitable(f);
+            set(t, 'Data', sol');
+            set(t, 'RowName', rowNames);
+            set(t, 'ColumnName', 'Solutions');
+        end
+    end
+end
 % hObject    handle to linearSysSolveButton (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -869,7 +885,7 @@ else
     %set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
     initialMatrixInput = uitable('ColumnWidth',{70},...
-        'Position',[0 0 pos(3) pos(4)],...% 600 80], ...
+        'Position',[0 0 pos(3) pos(4)],...
         'data',dataInput, ...
         'columnName', columnNames, ...
         'rowName', 'Guesses',...
@@ -953,9 +969,9 @@ if errFlag == false
         solutions(q) = solutions(q)/augA(q,q);
     end
     
-    time = toc;   
-    opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
-    timeString = ['Elapsed Time = ', num2str(time)];
+    time = toc;
+    opsString = ['Number of Operations = ', num2str(opCount)];
+    timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newString = combineString(condStr, opsString);
     newString = combineString(newString, timeString);
     set(handles.lSysOutputText, 'string', newString);
@@ -1051,8 +1067,8 @@ opiCount = opiCount + n^2;
 
 time = toc;
 
-opsString = ['Number of Operations = ', num2str(opiCount), ' seconds'];
-timeString = ['Elapsed Time = ', num2str(time)];
+opsString = ['Number of Operations = ', num2str(opiCount)];
+timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
 newString = combineString(opsString, timeString);
 set(handles.lSysOutputText, 'string', newString);
 
@@ -1112,9 +1128,11 @@ if errFlag == false
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newString = combineString(opsString, timeString);
     set(handles.lSysOutputText, 'string', newString);
+    X=X';
 end
 
 function[x, errFlag]  = SOR(augA, x, w, max_it, tol, handles)
+errFlag = false;
 rows = size(augA,1);
 columns = rows + 1;
 A = augA;
@@ -1203,18 +1221,19 @@ else
     error = RelForError;
     iter = iCount;
     
-    time = toc;    
-    opsStr = ['Number of Operations = ', num2str(iCount)];    
+    time = toc;
+    opsStr = ['Number of Operations = ', num2str(iCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
-    newStr = combine(convStr, opsStr);
+    newStr = combineString(GSStr, convStr);
+    newStr = combineString(newStr, opsStr);
     newStr = combineString(newStr, timeString);
     set(handles.lSysOutputText, 'string', newStr);
-        
-%     fprintf('  iteration    error    flag\n')
-%     
-%     disp(datasave)
-%     fprintf(' x final\n')
-%     disp(xnew)
+    x=x';
+    %     fprintf('  iteration    error    flag\n')
+    %
+    %     disp(datasave)
+    %     fprintf(' x final\n')
+    %     disp(xnew)
 end
 % -------------------------
 % --- NONLINEAR SYSTEMS ---
@@ -1415,8 +1434,8 @@ t = zeros(1,100);
 
 %begin iteration steps for calculating the solution of the system
 for i=1:number_of_iterations
-%     disp('iteration: ');
-%     disp(i);
+    %     disp('iteration: ');
+    %     disp(i);
     %solve for the solution set, s, to plug into later
     tic;
     a = zeros(length(eqns),1);
@@ -1455,11 +1474,11 @@ for i=1:number_of_iterations
     x_values(i) = x(1);
     y_values(i) = x(2);
     prev_x = x;
-%     disp(vpa(x,10))
+    %     disp(vpa(x,10))
     x = x - sol_set;
     if((round(sum(prev_x - x), 16)) == 0)
-%         disp('solution found at x = ');
-%         disp(vpa(x))
+        %         disp('solution found at x = ');
+        %         disp(vpa(x))
         figure
         subplot(2,1,1)       % add first plot in 2 x 1 grid
         plot(x_values,y_values)
@@ -1487,7 +1506,7 @@ for i=1:number_of_iterations
 end %repeat k times end of iteration loop
 
 if(diverge == 1)
-%     disp('the solution appears to be diverging')
+    %     disp('the solution appears to be diverging')
     currStr = get(handles.nonLinearSysOutput, 'string');
     newStr = combineString(currStr, 'The solution appears to be diverging');
     set(handles.nonLinearSysOutput, 'string', newStr);
@@ -1535,9 +1554,9 @@ for i=1:number_of_iterations
         y1(j) = single(answer);
     end %end of solution set loop
     if(round(y1, 16) == 0)
-%         disp('solution found at x = ')
-%         disp(vpa(x1,16))
-%         disp('correct to 10 decimals digits')
+        %         disp('solution found at x = ')
+        %         disp(vpa(x1,16))
+        %         disp('correct to 10 decimals digits')
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
@@ -1595,9 +1614,9 @@ for i=1:number_of_iterations
         y1(j) = single(answer);
     end %end of solution set loop
     if(round(y1, 10) == 0)
-%         disp('solution found at x = ')
-%         disp(vpa(x1,10))
-%         disp('correct to 10 decimals digits')
+        %         disp('solution found at x = ')
+        %         disp(vpa(x1,10))
+        %         disp('correct to 10 decimals digits')
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
