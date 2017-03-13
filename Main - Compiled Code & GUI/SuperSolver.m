@@ -1064,7 +1064,7 @@ opiCount = opiCount + n^2;
 solution = [];
 solution = U\c;
 opiCount = opiCount + n^2;
-
+solution = solution';
 time = toc;
 
 opsString = ['Number of Operations = ', num2str(opiCount)];
@@ -1120,15 +1120,15 @@ for k=1:iterations
     if (err<Tol)||(relerr<Tol)
         break
     end
+    opiCount = opiCount + N^2;
 end
 
 if errFlag == false
     time = toc;
-    opsString = ['Number of Operations = ', num2str(opiCount)];
+    opsString = ['Number of Iterations = ', num2str(k), ',Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newString = combineString(opsString, timeString);
     set(handles.lSysOutputText, 'string', newString);
-    X=X';
 end
 
 function[x, errFlag]  = SOR(augA, x, w, max_it, tol, handles)
@@ -1222,7 +1222,7 @@ else
     iter = iCount;
     
     time = toc;
-    opsStr = ['Number of Operations = ', num2str(iCount)];
+    opsString = ['Number of Iterations = ', num2str(iter), ',Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combineString(GSStr, convStr);
     newStr = combineString(newStr, opsStr);
