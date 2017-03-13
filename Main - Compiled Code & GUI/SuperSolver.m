@@ -1222,7 +1222,7 @@ else
     iter = iCount;
     
     time = toc;
-    opsString = ['Number of Iterations = ', num2str(iter), ',Operations = ', num2str(opiCount)];
+    opsStr = ['Number of Iterations = ', num2str(iter), ',Operations = ', num2str(iCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combineString(GSStr, convStr);
     newStr = combineString(newStr, opsStr);
