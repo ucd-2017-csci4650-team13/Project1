@@ -16,7 +16,7 @@ if nargout
     [varargout{1:nargout}] = gui_mainfcn(gui_State, varargin{:});
 else
     gui_mainfcn(gui_State, varargin{:});
-
+    
 end
 % End initialization code - DO NOT EDIT
 
@@ -32,7 +32,7 @@ function SuperSolver_OpeningFcn(hObject, ~, handles, varargin)
 handles.output = hObject;
 %% Tabs Code
 % Settings
-TabFontSize = 8;
+TabFontSize = 10;
 TabNames = {'Single Variable','Linear Systems','Nonlinear Systems'};
 FigWidth = 0.5;
 
@@ -45,11 +45,11 @@ set(handles. SimpleOptimizedTab, 'Position', [pos(1) pos(2) FigWidth pos(4)])
 handles = TabsFun(handles,TabFontSize,TabNames);
 
 % Update handles structure
-%handles.matrixInput = {}
 guidata(hObject, handles);
 set(handles.linearSysGuessButton, 'enable', 'off');
 set(handles.omegaEdit, 'enable', 'off');
 set(handles.singleVarx0Edit, 'enable', 'off');
+set(handles.nonLinearSysBroydenMatrixEdit, 'enable', 'off')
 warning('off', 'symbolic:sym:sym:DeprecateExpressions');
 % UIWAIT makes SuperSolver wait for user response (see UIRESUME)
 % uiwait(handles.SimpleOptimizedTab);
@@ -68,11 +68,11 @@ handles.TabsNumber = TabsNumber;
 TabColor = handles.selectedTabColor;
 for i = 1:TabsNumber
     n = num2str(i);
-
+    
     % Get text objects position
     set(handles.(['tab',n,'text']),'Units','normalized')
     pos=get(handles.(['tab',n,'text']),'Position');
-
+    
     % Create axes with callback function
     handles.(['a',n]) = axes('Units','normalized',...
         'Box','on',...
@@ -82,7 +82,7 @@ for i = 1:TabsNumber
         'Position',[pos(1) pos(2) pos(3) pos(4)+0.01],...
         'Tag',n,...
         'ButtonDownFcn',[mfilename,'(''ClickOnTab'',gcbo,[],guidata(gcbo))']);
-
+    
     % Create text with callback function
     handles.(['t',n]) = text('String',TabNames{i},...
         'Units','normalized',...
@@ -94,7 +94,7 @@ for i = 1:TabsNumber
         'Backgroundcolor',TabColor,...
         'Tag',n,...
         'ButtonDownFcn',[mfilename,'(''ClickOnTab'',gcbo,[],guidata(gcbo))']);
-
+    
     TabColor = handles.unselectedTabColor;
 end
 
@@ -114,7 +114,7 @@ end
 function ClickOnTab(hObject,~,handles)
 m = str2double(get(hObject,'Tag'));
 
-for i = 1:handles.TabsNumber;
+for i = 1:handles.TabsNumber
     n = num2str(i);
     if i == m
         set(handles.(['a',n]),'Color',handles.selectedTabColor)
@@ -138,6 +138,9 @@ function varargout = SuperSolver_OutputFcn(~, ~, handles)
 varargout{1} = handles.output;
 
 
+%==============================
+% Single Variable GUI elements
+%==============================
 % --- Executes on selection change in singleVarListBox.
 function singleVarListBox_Callback(~, ~, handles)
 % hObject    handle to singleVarListBox (see GCBO)
@@ -171,9 +174,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function singleVarToleranceEdit_Callback(~, ~, ~)
+function singleVarToleranceEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarToleranceEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -181,22 +182,13 @@ function singleVarToleranceEdit_Callback(~, ~, ~)
 % Hints: get(hObject,'String') returns contents of singleVarToleranceEdit as text
 %        str2double(get(hObject,'String')) returns contents of singleVarToleranceEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function singleVarToleranceEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to singleVarToleranceEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function singleVarIterationsEdit_Callback(~, ~, ~)
+function singleVarIterationsEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarIterationsEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -217,7 +209,7 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-function singleVarx0Edit_Callback(~, ~, ~)
+function singleVarx0Edit_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarx0Edit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -239,15 +231,13 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-
-function singleVarFunctionEdit_Callback(~, ~, ~)
+function singleVarFunctionEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to singleVarFunctionEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'String') returns contents of singleVarFunctionEdit as text
 %        str2double(get(hObject,'String')) returns contents of singleVarFunctionEdit as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function singleVarFunctionEdit_CreateFcn(hObject, ~, ~)
@@ -263,6 +253,69 @@ end
 
 function newString = combineString(currentString, addedString)
 newString = sprintf('%s\n%s',currentString, addedString);
+
+function singleVarRootEdit_Callback(hObject, eventdata, handles)
+% hObject    handle to singleVarRootEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of singleVarRootEdit as text
+%        str2double(get(hObject,'String')) returns contents of singleVarRootEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function singleVarRootEdit_CreateFcn(hObject, ~, ~)
+% hObject    handle to singleVarRootEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function bisectionAEdit_Callback(~, ~, ~)
+% hObject    handle to bisectionAEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of bisectionAEdit as text
+%        str2double(get(hObject,'String')) returns contents of bisectionAEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function bisectionAEdit_CreateFcn(hObject, ~, ~)
+% hObject    handle to bisectionAEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+function bisectionBEdit_Callback(~, ~, ~)
+% hObject    handle to bisectionBEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of bisectionBEdit as text
+%        str2double(get(hObject,'String')) returns contents of bisectionBEdit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function bisectionBEdit_CreateFcn(hObject, ~, ~)
+% hObject    handle to bisectionBEdit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 % --- Executes on button press in singleVarSolveButton.
 function singleVarSolveButton_Callback(hObject, ~, handles)
@@ -303,7 +356,7 @@ else
         r = Inf;    % Checks to see if user entered real rool, can run in different manner
     end
     outhandles = guidata(hObject);  % Passing handles to functions to work with textbox
-
+    
     switch method
         case 1
             a = str2double(get(handles.bisectionAEdit, 'string'));
@@ -311,6 +364,10 @@ else
             if isnan(a) || isnan(b)
                 rangeErrorString='Missing range input';
                 set(handles.singleVarOutputText, 'string', rangeErrorString);
+                errFlag = true;
+            elseif a > b
+                rangeErrString2 = 'a must be less than b';
+                set(handles.singleVarOutputText, 'string', rangeErrString2);
                 errFlag = true;
             else
                 [xList, errList, errFlag, iterations] = Bisection(infxn, a, b, r, Tol, maxIterations, outhandles);
@@ -324,18 +381,18 @@ else
         calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations);
     end
     if length(xList) > 1
-            f = figure;
-            t = uitable(f);
-            newRowIndices = strings;
-            for j=0:iterations-1
-                newRowIndices(j+1) = num2str(j);
-            end
-            newRowIndices(j+2) = num2str(j+1);
-            set(t, 'RowName', newRowIndices);
-            xStrings = cell(size(xList));
-            for s = 1:iterations+1
-                xStrings(s) = cellstr(num2str(xList(s), '%20.16f'));
-            end
+        f = figure;
+        t = uitable(f);
+        newRowIndices = strings;
+        for j=0:iterations-1
+            newRowIndices(j+1) = num2str(j);
+        end
+        newRowIndices(j+2) = num2str(j+1);
+        set(t, 'RowName', newRowIndices);
+        xStrings = cell(size(xList));
+        for s = 1:iterations+1
+            xStrings(s) = cellstr(num2str(xList(s), '%20.16f'));
+        end
         if r ~= Inf
             errStrings = cell(size(errList));
             for s = 1:iterations+1
@@ -351,87 +408,56 @@ else
             set(t, 'RowName', newRowIndices);
         end
     end
-<<<<<<< HEAD
-=======
-
->>>>>>> origin/master
-end
-
-function singleVarRootEdit_Callback(~, ~, ~)
-% hObject    handle to singleVarRootEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of singleVarRootEdit as text
-%        str2double(get(hObject,'String')) returns contents of singleVarRootEdit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function singleVarRootEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to singleVarRootEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
 end
 
 %==============================
 % Single Variable Methods
 %==============================
 
-
 function [xList, errList, errorFlag, i] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
-%Tol = 0.00000001;
-%syms x;
 xList = zeros();                        % List of x values calculated for graphing and tables
 errList = zeros();
 xList(1) = x0;                          % Set the first element of the list to the initial guess
-errList(1) = abs(xList(1) - r);           % List of ei
+errList(1) = abs(xList(1) - r);         % List of ei
 errorFlag = false;
-%infxn = sym(infxn)
 f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
 fprime = matlabFunction(diff(infxn));   % First derivative of f
 iCount = zeros();
 difference = zeros();
 ticks = 0;
-
-% For analysis
 dx = 1;
 
-if(fprime(r) == 0)
-    fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
-    linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
-    set(handles.singleVarOutputText, 'string', linearString);
-else
-    fprintf('The method will converge quadratically.');
-    quadConString = 'The method will converge quadratically.';
-    set(handles.singleVarOutputText, 'string', quadConString);
+if r ~= Inf
+    if(fprime(r) == 0)
+        fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
+        linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
+        set(handles.singleVarOutputText, 'string', linearString);
+    else
+        fprintf('The method will converge quadratically.');
+        quadConString = 'The method will converge quadratically.';
+        set(handles.singleVarOutputText, 'string', quadConString);
+    end
 end
-
 
 for i = 1:maxIterations
     iCount(i) = i-1;
     fofx = f(xList(i));
     fpofx = fprime(xList(i));
-
+    
     if(fpofx == 0 || abs(fpofx) == Inf)
         errorString = ['The derivative of the function at ', num2str(xList(i)), ' is 0, try another initial guess'];
         set(handles.singleVarOutputText, 'string', errorString);
         errorFlag = true;
         break;
     end
-
+    
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
     difference(i+1) = abs(xList(i+1) - xList(i));
     if (difference(i) > 2 && difference(i) < difference(i + 1))
-      ticks = ticks + 1;
+        ticks = ticks + 1;
     end
-<<<<<<< HEAD
     
-    if (ticks > 3)        
+    if (ticks > 3)
         currStr = get(handles.singleVarOutputText, 'string');
         divStr = 'The answer is diverging.';
         newStr = combineString(currStr, divStr);
@@ -439,17 +465,10 @@ for i = 1:maxIterations
         errorFlag = true;
         break;
     end
-        
-=======
-
+    
     if (ticks > 5)
         fprintf('The answer is likely diverging.\n');
     end
-
-    ei = abs(xList(i) - r);                    % Gets forward error of current iteration
-    iterativeErrorList(i) = ei/(pastError)^2;  % Error in relation to previous iteration
-
->>>>>>> origin/master
     if r ~= Inf
         errList(i+1) = abs(xList(i+1) - r);                % Gets forward error of current iteration
     end
@@ -515,10 +534,10 @@ for i = 1:maxIterations
     end
     difference(i+1) = abs(xList(i+1) - xList(i));
     if (difference(i) > 2 && difference(i) < difference(i + 1))
-      ticks = ticks + 1;  
+        ticks = ticks + 1;
     end
     
-    if (ticks > 3)        
+    if (ticks > 3)
         currStr = get(handles.singleVarOutputText, 'string');
         divStr = 'The answer is diverging.';
         newStr = combineString(currStr, divStr);
@@ -557,7 +576,7 @@ if sign(f(a))*sign(f(b)) >= 0
 else
     cList = zeros;
     fa=f(a);
-
+    
     %fb=f(b);
     for i =1:maxIterations
         iCount(i) = i-1;
@@ -565,7 +584,7 @@ else
         if r ~= Inf
             errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
         end
-
+        
         fc=f(cList(i));
         if fc == 0 || (b-a)/2<tol               %c is a solution or below the tolerance, done
             break
@@ -577,7 +596,7 @@ else
         end
     end
     cList(i)=(a+b)/2; %new midpoint is best estimate
-
+    
 end
 
 if errorFlag ~= true
@@ -638,48 +657,9 @@ while(subs(fnx, x) == 0)        % Runs when fn(0) = 0
     fnx = diff(fnx);            % Get the next derivative
 end
 
-function bisectionAEdit_Callback(~, ~, ~)
-% hObject    handle to bisectionAEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of bisectionAEdit as text
-%        str2double(get(hObject,'String')) returns contents of bisectionAEdit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function bisectionAEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to bisectionAEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
-function bisectionBEdit_Callback(~, ~, ~)
-% hObject    handle to bisectionBEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of bisectionBEdit as text
-%        str2double(get(hObject,'String')) returns contents of bisectionBEdit as a double
-
-
-% --- Executes during object creation, after setting all properties.
-function bisectionBEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to bisectionBEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor','white');
-end
-
+%====================================
+% Linear Systems GUI Elements
+%====================================
 
 % --- Executes on selection change in linearSysListBox.
 function linearSysListBox_Callback(~, ~, handles)
@@ -698,30 +678,14 @@ switch method
         set(handles.linearSysGuessButton, 'enable', 'on');
         set(handles.omegaEdit, 'enable', 'on');
 end
-% hObject    handle to linearSysListBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: contents = cellstr(get(hObject,'String')) returns linearSysListBox contents as cell array
-%        contents{get(hObject,'Value')} returns selected item from linearSysListBox
-
 
 % --- Executes during object creation, after setting all properties.
 function linearSysListBox_CreateFcn(hObject, ~, ~)
-% hObject    handle to linearSysListBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: listbox controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
-
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function linearSysNumOfVarEdit_Callback(~, ~, ~)
+function linearSysNumOfVarEdit_Callback(hObject, eventdata, handles)
 
 % hObject    handle to linearSysNumOfVarEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
@@ -730,22 +694,14 @@ function linearSysNumOfVarEdit_Callback(~, ~, ~)
 % Hints: get(hObject,'String') returns contents of linearSysNumOfVarEdit as text
 %        str2double(get(hObject,'String')) returns contents of linearSysNumOfVarEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
-function linearSysNumOfVarEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to linearSysNumOfVarEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
+function linearSysNumOfVarEdit_CreateFcn(hObject, ~, ~)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function linearSysIterEdit_Callback(~, ~, ~)
+function linearSysIterEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to linearSysIterEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -753,22 +709,13 @@ function linearSysIterEdit_Callback(~, ~, ~)
 % Hints: get(hObject,'String') returns contents of linearSysIterEdit as text
 %        str2double(get(hObject,'String')) returns contents of linearSysIterEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function linearSysIterEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to linearSysIterEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function linearSysTolEdit_Callback(~, ~, ~)
+function linearSysTolEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to linearSysTolEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -776,29 +723,19 @@ function linearSysTolEdit_Callback(~, ~, ~)
 % Hints: get(hObject,'String') returns contents of linearSysTolEdit as text
 %        str2double(get(hObject,'String')) returns contents of linearSysTolEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function linearSysTolEdit_CreateFcn(hObject, ~, ~)
-% hObject    handle to linearSysTolEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-function omegaEdit_Callback(~, ~, ~)
+function omegaEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to omegaEdit (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'String') returns contents of omegaEdit as text
 %        str2double(get(hObject,'String')) returns contents of omegaEdit as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function omegaEdit_CreateFcn(hObject, ~, ~)
@@ -830,21 +767,14 @@ else
     columnNames(i+1) = 'b';
     figure,
     pos = get(gcf,'position');
-    set(gcf,'position',[pos(1:2) [660 120]])
+    %set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
     tableInput = uitable('ColumnWidth',{50},...
-        'Position',[30 20 600 80], ...
+        'Position',[0 0 pos(3) pos(4)],...% 600 80], ...
         'data',dataInput, ...
         'columnName', columnNames,...
         'ColumnEditable',true);
 end
-%gen data because so i do not have to enter it in manually for the
-%example
-%handles.matrixInput = get(tableInput,'data')
-% hObject    handle to linearSysMatrixButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, ~, handles)
@@ -920,20 +850,18 @@ else
     figure,
     pos = get(gcf,'position');
     columnNames = strings;
-    for i = 1:rows
+    for i = 1:vars
         columnNames(i) = ['x',num2str(i)];
     end
-    set(gcf,'position',[pos(1:2) [660 120]])
+    %set(gcf,'position',[pos(1:2) [660 120]])
     %Input table's creation
     initialMatrixInput = uitable('ColumnWidth',{70},...
-        'Position',[30 20 600 80], ...
+        'Position',[0 0 pos(3) pos(4)],...% 600 80], ...
         'data',dataInput, ...
         'columnName', columnNames, ...
+        'rowName', 'Guesses',...
         'ColumnEditable',true);
 end
-% hObject    handle to linearSysGuessButton (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 %==============================
 % Linear Systems Methods
@@ -946,26 +874,20 @@ end
 % row input csv values?
 function [solutions, errFlag] = Gauss_Elim(augA, handles)
 opiCount = 0;
-%row = 3;
-%col = 3;
 
-% CONDITION NUMBER
-% Conditioning is a property of the matrix
-% Error Magnification factors of the magnitude cond(matrix) are possible
-% Matlab default precision is double
-
-
-% TODO incorporate user input
-%A = [1, 2, -1; 2, 1, -2; -3, 1, 1]
-%ans = [3; 3; -6];
 errFlag = false;
 solutions = zeros;
 n = size(augA, 1);
 row = size(augA, 1);
 col = row + 1;
-
+opCount = 0;
 A = augA;
 A(:,col) = [];
+
+% CONDITION NUMBER
+% Conditioning is a property of the matrix
+% Error Magnification factors of the magnitude cond(matrix) are possible
+% Matlab default precision is double
 norminf = norm(A, inf);
 norminf_inv = norm(inv(A), inf);
 
@@ -986,7 +908,7 @@ tic;
 for j = 1:n-1 % n-1 = num of rows - the 1st row
     % check for division by zero
     if augA(j,j) == 0
-        errorStr = 'zero pivot eniCountered';
+        errorStr = 'Zero pivot encountered, stopping.';
         set(handles.lSysOutputText, 'string', errorStr);
         errFlag = true;
         toc;
@@ -997,17 +919,12 @@ for j = 1:n-1 % n-1 = num of rows - the 1st row
     for i = j+1:n
         % row multiplier
         multi = augA(i, j) / augA(j, j);
-<<<<<<< HEAD
-        opiCount = opiCount + 1;
-        
-=======
         opCount = opCount + 1;
-
->>>>>>> origin/master
+        
         % subtract multiplier * the row from
         for index = 1:col
             augA(i, index) = (augA(i, index) - (multi * augA(j, index)));
-            opiCount = opiCount + 1;
+            opCount = opCount + 1;
         end
     end
 end
@@ -1021,22 +938,10 @@ if errFlag == false
             solutions(q) = solutions(q) - augA(q,u)*solutions(u);
         end
         solutions(q) = solutions(q)/augA(q,q);
-        fprintf('\n');
     end
-
-    for x = 1:n
-        fprintf('x%d = %f\n', x, solutions(x));
-    end
-    fprintf('\n');
-    time = toc;
-    fprintf('\n');
-<<<<<<< HEAD
     
-    opsString = ['Number of Operations = ', num2str(opiCount), ' seconds'];
-=======
-
+    time = toc;   
     opsString = ['Number of Operations = ', num2str(opCount), ' seconds'];
->>>>>>> origin/master
     timeString = ['Elapsed Time = ', num2str(time)];
     newString = combineString(condStr, opsString);
     newString = combineString(newString, timeString);
@@ -1065,13 +970,6 @@ A(:,columns) = [];
 b = augA(:,columns);
 opiCount = 0;
 errFlag = false;
-
-% % % matrix A
-% A=[-1, 0, 1;
-%    2, 1, 1;
-%   -1, 2, 0]
-%vector b
-% b = [-2; 17; 3]
 
 % size of n x n
 [~, n] = size(A);
@@ -1105,7 +1003,7 @@ for k = 1:n
         temp = P(k, :);
         P(k, :) = P(i, :);
         P(i, :) = temp;
-
+        
         % Lower triangular array
         if k >= 2
             % (k , 1:k-1) means entire row k and columns 1 thru k-1
@@ -1145,22 +1043,21 @@ timeString = ['Elapsed Time = ', num2str(time)];
 newString = combineString(opsString, timeString);
 set(handles.lSysOutputText, 'string', newString);
 
-fprintf('Number of Operations = %d\n', opiCount);
-fprintf('Lower Triangular = \n');
-L;
-fprintf('Upper Triangular = \n');
-U;
-fprintf('Permutation Matrix = \n');
-P
-fprintf('Solution vector = \n');
-solution
+% fprintf('Number of Operations = %d\n', opiCount);
+% fprintf('Lower Triangular = \n');
+% L;
+% fprintf('Upper Triangular = \n');
+% U;
+% fprintf('Permutation Matrix = \n');
+% P
+% fprintf('Solution vector = \n');
+% solution
 
 function [X, errFlag] = Jacobi(augA, P, handles)
 rows = size(augA,1);
 columns = rows + 1;
 A = augA;
 A(:,columns) = [];
-%A = input('enter an initial matrix: \n');
 b = augA(:,columns);
 opiCount = 0;
 
@@ -1168,15 +1065,14 @@ X = zeros();
 iterations = 10;
 N = length(b);
 Tol = 0.00000001;
-diagonalDominant = true;
 errFlag = false;
+
 % Check if A is strictly diagonally dominant
 % For each row in matrix A
 for r=1:N
     rowSum = sumabs(A(r,:)) - abs(A(r, r)); % Sum of the entire row minus the diagonal
     % Check if diagonal is strictly greater than the row sum
     if abs(A(r,r)) < rowSum
-        fprintf('Matrix A is not strictly diagonal dominant and may not converge.\n');
         convergenceStr = 'Matrix A is not strictly diagonal dominant and may not converge.';
         set(handles.lSysOutputText, 'string', convergenceStr);
         break;
@@ -1210,10 +1106,9 @@ rows = size(augA,1);
 columns = rows + 1;
 A = augA;
 A(:,columns) = [];
-%A = input('enter an initial matrix: \n');
 b = augA(:,columns);
 
-opiCount = 0;
+iCount = 0;
 GSStr = '';
 convStr = '';
 
@@ -1222,7 +1117,6 @@ x = x';
 n = length(A);
 
 if (w == 1)
-    fprintf('The relaxation scalar omega = 1. The method used is now Gauss-Seidel')
     GSStr = 'The relaxation scalar omega = 1. The method used is now Gauss-Seidel';
     set(handles.lSysOutputText, 'string', GSStr);
 end
@@ -1232,7 +1126,7 @@ tic;
 for r=1:n
     % Sum of the entire row minus the diagonal
     rowSum = sumabs(A(r,:)) - abs(A(r, r));
-    opiCount = opiCount + 1;
+    iCount = iCount + 1;
     % Check if diagonal is strictly greater than the row sum
     if (abs(A(r,r)) < rowSum)
         % If not, note it
@@ -1245,19 +1139,12 @@ for r=1:n
 end
 
 if size(b) ~= size(x)
-    fprintf('The given approximation vector does not match the x vector size\n');
     errStr = 'The given approximation vector does not match the x vector size';
     set(handles.lSysOutputText, 'string', errStr);
     errFlag = true;
 else
     flag = 0;
-<<<<<<< HEAD
     iCount = 1;
-    
-=======
-    count = 1;
-
->>>>>>> origin/master
     % matrix splitting
     % TODO: opiCount will be affected by these operations. Need to add.
     D = diag(diag(A));
@@ -1267,69 +1154,54 @@ else
     %N = (1 - w)*D - w*U;
     %G = M\N;
     G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
-    opiCount = opiCount + 1;
+    iCount = iCount + 1;
     %fprintf('Iteration 1: ', G);
     datasave = [];
     % begin iteration
     for iter = 1:max_it
         xnew = G;
         RelForError = (norm(xnew-x))/(norm(xnew));
-        opiCount = opiCount + 1;
+        iCount = iCount + 1;
         % update approximation
         while (RelForError > tol)
             x = xnew;
-            opiCount = opiCount + 1;
+            iCount = iCount + 1;
             G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b)
             xnew = G;
-            opiCount = opiCount + 1;
+            iCount = iCount + 1;
             RelForError = (norm(xnew-x))/(norm(xnew));
             if (RelForError <= tol)
                 break
             end
-            iCount = iCount+1;
             x = [x, xnew];
             datasave = [datasave; iCount, RelForError, flag];
         end
     end
-
+    
     b = b / w; % vector b
     if (RelForError > tol)
         flag = 1;
-        fprintf('Did not converge')
         convStr = 'Did not converge';
         set(handles.lSysOutputText, 'string', convStr);
     end
-
+    
     % for function return
     x = xnew;
     error = RelForError;
-<<<<<<< HEAD
     iter = iCount;
     
-    fprintf('Number of operations: %d\n', opiCount);
-    time = toc;
-    
-    opsStr = ['Number of Operations = ', num2str(opiCount)];
-=======
-    iter = count;
-
-    fprintf('Number of operations: %d\n', opCount);
-    time = toc;
-
-    opsStr = ['Number of Operations = ', num2str(opCount)];
->>>>>>> origin/master
+    time = toc;    
+    opsStr = ['Number of Operations = ', num2str(iCount)];    
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combine(convStr, opsStr);
     newStr = combineString(newStr, timeString);
     set(handles.lSysOutputText, 'string', newStr);
-
-    fprintf('\n');
-
-    fprintf('  iteration    error    flag\n')
-
-    disp(datasave)
-    fprintf(' x final\n')
-    disp(xnew)
+        
+%     fprintf('  iteration    error    flag\n')
+%     
+%     disp(datasave)
+%     fprintf(' x final\n')
+%     disp(xnew)
 end
 % -------------------------
 % --- NONLINEAR SYSTEMS ---
@@ -1338,6 +1210,12 @@ end
 
 % --- Executes on selection change in nonLinearSysListBox.
 function nonLinearSysListBox_Callback(hObject, eventdata, handles)
+method = get(handles.nonLinearSysListBox, 'value');
+if method == 1
+    set(handles.nonLinearSysBroydenMatrixEdit, 'enable', 'off')
+else
+    set(handles.nonLinearSysBroydenMatrixEdit, 'enable', 'on')
+end
 % hObject    handle to nonLinearSysListBox (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
@@ -1348,17 +1226,9 @@ function nonLinearSysListBox_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysListBox_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysListBox (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: listbox controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function nonLinearSysInitialGuessEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to nonLinearSysInitialGuessEdit (see GCBO)
@@ -1368,20 +1238,11 @@ function nonLinearSysInitialGuessEdit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of nonLinearSysInitialGuessEdit as text
 %        str2double(get(hObject,'String')) returns contents of nonLinearSysInitialGuessEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysInitialGuessEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysInitialGuessEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function nonLinearSysEqnListEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to nonLinearSysEqnListEdit (see GCBO)
@@ -1391,20 +1252,11 @@ function nonLinearSysEqnListEdit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of nonLinearSysEqnListEdit as text
 %        str2double(get(hObject,'String')) returns contents of nonLinearSysEqnListEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysEqnListEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysEqnListEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function nonLinearSySIterationsEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to nonLinearSySIterationsEdit (see GCBO)
@@ -1414,19 +1266,11 @@ function nonLinearSySIterationsEdit_Callback(hObject, eventdata, handles)
 % Hints: get(hObject,'String') returns contents of nonLinearSySIterationsEdit as text
 %        str2double(get(hObject,'String')) returns contents of nonLinearSySIterationsEdit as a double
 
-
 % --- Executes during object creation, after setting all properties.
 function nonLinearSySIterationsEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSySIterationsEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 % --- Executes on button press in BroydenInitialMatrix.
 function BroydenInitialMatrix_Callback(hObject, eventdata, handles)
@@ -1436,8 +1280,6 @@ function BroydenInitialMatrix_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of BroydenInitialMatrix
 % Hint: popupmenu controls usually have a white background on Windows.
-
-
 
 function nonLinearSysVarsListEdit_Callback(hObject, eventdata, handles)
 % hObject    handle to nonLinearSysVarsListEdit (see GCBO)
@@ -1450,17 +1292,9 @@ function nonLinearSysVarsListEdit_Callback(hObject, eventdata, handles)
 
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysVarsListEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysVarsListEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 % --- Executes on button press in nonLinearMultiVarSolveButton.
 function nonLinearMultiVarSolveButton_Callback(hObject, eventdata, handles)
@@ -1510,112 +1344,114 @@ root = str2num(get(handles.nonLinearSysRootEdit, 'string'));
 %GET number of iterations
 number_of_iterations = str2double(get(handles.nonLinearSySIterationsEdit, 'string'));
 % disp(number_of_iterations);
-
+nLSHandles = guidata(hObject);
 switch method
     case 1
-        [appr_x] = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations);
+        [appr_x] = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations, nLSHandles);
         [forward, backward]=find_error(appr_x, root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
-
+        
         appr_x = sprintf('%0.5f, ',appr_x);
         appr_x = appr_x(1:end-2);
-
+        
         answer = ['Approximate root: ', appr_x];
         string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
-
+        currStr = get(handles.nonLinearSysOutput, 'string');
+        string = combineString(currStr, string);
         set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
-
+        
     case 2
         [appr_x] = Broyden_1_Method(x, vars, eqns, A, number_of_iterations);
-
+        
         [forward, backward]=find_error(appr_x, root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
-
+        
         appr_x = sprintf('%0.5f, ',appr_x);
         appr_x = appr_x(1:end-2);
-
+        
         answer = ['Approximate root: ', appr_x];
         string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
-
-         set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
-
+        
+        set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
+        
     otherwise
         [appr_x] = Broyden_2_Method(x, vars, eqns, A, number_of_iterations);
         [forward, backward]=find_error(appr_x, root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
-
+        
         appr_x = sprintf('%0.5f, ',appr_x);
         appr_x = appr_x(1:end-2);
-
+        
         answer = ['Approximate root: ', appr_x];
         string = sprintf('%s\n%s\n%s', answer, forwardSpec, backwardSpec);
-
-         set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
+        set(handles.nonLinearSysOutput, 'Max', 20, 'HorizontalAlignment', 'left', 'String',  string);
 end
 
-function x = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations)
+function x = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations, handles)
 %create a Jacobian matrix
 DF = jacobian(eqns, vars);
-disp(DF);
+DFStr = char(DF);
+set(handles.nonLinearSysOutput, 'string', DFStr);
+% disp(DF);
 x_values = zeros(1,100);
 y_values = zeros(1,100);
 t = zeros(1,100);
 
 %begin iteration steps for calculating the solution of the system
 for i=1:number_of_iterations
-    disp('iteration: ');
-    disp(i);
+%     disp('iteration: ');
+%     disp(i);
     %solve for the solution set, s, to plug into later
     tic;
     a = zeros(length(eqns),1);
-
+    
     for j=1:length(eqns)
         answer = subs(eqns(j), vars, x);
         a(j) = single(answer);
     end %end of solution set loop
-
-
+    
+    
     %solve for the constants in the Jacobian matrix
     %find values of Jacobian with starting point
     sol_matrix = subs(DF, vars, x);
-
+    
     %a = array containing the solution variables [s1, s2, s3...],
     %sol_matrix = solution matrix to solve for the solution set (s1, s2, s3...)
     %solve the linear system of equations this will output the solution set
     %{'a', 'b'}
     %[1,1]
-
+    
     %[(a+b), (a+(-b)), (a+b^2)]
     %
-
+    
     sol_set = linsolve(sol_matrix, a);
     if(isinf(sol_set))
         warning('The system of equations does not converge')
         return
     end
     sol_set = double(sol_set);
-
+    
     %reshape to a 1D array for easy subtraction
     sol_set = reshape(sol_set, [1, numel(a)]);
-
-
+    
+    
     %solve xk = x(k-1) + s --> xk
     x_values(i) = x(1);
     y_values(i) = x(2);
     prev_x = x;
-    disp(vpa(x,10))
+%     disp(vpa(x,10))
     x = x - sol_set;
     if((round(sum(prev_x - x), 16)) == 0)
-        disp('solution found at x = ');
-        disp(vpa(x))
+%         disp('solution found at x = ');
+%         disp(vpa(x))
         figure
         subplot(2,1,1)       % add first plot in 2 x 1 grid
         plot(x_values,y_values)
         title('Convergence or Divergence')
-
+        
         subplot(2,1,2)       % add second plot in 2 x 1 grid
         plot(t)       % plot using + markers
         title('TIme Complexity')
@@ -1631,16 +1467,17 @@ for i=1:number_of_iterations
             end
         end
     end
-
-
+    
+    
     %show the solution at the end of each step[[2*u^2 + v^2 + 3*w^2 + 6*w - 4*u + 2],[3*u^2 - 12*u + v^2 + 3*w^2 + 8], [u^2 + v^2 - 2*v + 2*w^2 - 5]]
     t(i) = toc;
 end %repeat k times end of iteration loop
 
 if(diverge == 1)
-    disp('the solution appears to be diverging')
-
-
+%     disp('the solution appears to be diverging')
+    currStr = get(handles.nonLinearSysOutput, 'string');
+    newStr = combineString(currStr, 'The solution appears to be diverging');
+    set(handles.nonLinearSysOutput, 'string', newStr);
 end
 
 figure
@@ -1651,9 +1488,6 @@ title('Convergence or Divergence')
 subplot(2,1,2)       % add second plot in 2 x 1 grid
 plot(t)       % plot using + markers
 title('Time Complexity')
-
-
-
 
 function x1 = Broyden_1_Method(x_i, vars, eqns, A, number_of_iterations)
 %evaluate the functions at x
@@ -1688,17 +1522,17 @@ for i=1:number_of_iterations
         y1(j) = single(answer);
     end %end of solution set loop
     if(round(y1, 16) == 0)
-        disp('solution found at x = ')
-        disp(vpa(x1,16))
-        disp('correct to 10 decimals digits')
+%         disp('solution found at x = ')
+%         disp(vpa(x1,16))
+%         disp('correct to 10 decimals digits')
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
         ylabel('Time to Compute (s)')
         return
     end
-%     y1 = transpose(y1);
-
+    %     y1 = transpose(y1);
+    
     %calculate new matrix A
     deltaY = y1 - y;
     deltaX = x1 - x;
@@ -1714,30 +1548,11 @@ title('Time vs Iterations')
 xlabel('Iterations')
 ylabel('Time to Compute (s)')
 
-
-
-function nonLinearSysBroydenMatrixEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenMatrixEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nonLinearSysBroydenMatrixEdit as text
-%        str2double(get(hObject,'String')) returns contents of nonLinearSysBroydenMatrixEdit as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysBroydenMatrixEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysBroydenMatrixEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
-
 
 function x1 = Broyden_2_Method(x_i, vars, eqns, B, number_of_iterations)
 %evaluate the functions at x
@@ -1759,7 +1574,7 @@ for i=1:number_of_iterations
     y = y1;
     tic;
     x1 = x - B*y;
-
+    
     display(x1);
     y1 = zeros(length(eqns),1);
     for j=1:length(eqns)
@@ -1767,9 +1582,9 @@ for i=1:number_of_iterations
         y1(j) = single(answer);
     end %end of solution set loop
     if(round(y1, 10) == 0)
-        disp('solution found at x = ')
-        disp(vpa(x1,10))
-        disp('correct to 10 decimals digits')
+%         disp('solution found at x = ')
+%         disp(vpa(x1,10))
+%         disp('correct to 10 decimals digits')
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
@@ -1778,7 +1593,7 @@ for i=1:number_of_iterations
         return
     end
     %y1 = transpose(y1);
-
+    
     %calculate new matrix B
     deltaY = y1 - y;
     deltaX = x1 - x;
@@ -1794,22 +1609,9 @@ title('Time vs Iterations')
 xlabel('Iterations')
 ylabel('Time to Compute (s)')
 
-
-
-
-function lSysOutputText_Callback(hObject, eventdata, handles)
-% hObject    handle to lSysOutputText (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of lSysOutputText as text
-%        str2double(get(hObject,'String')) returns contents of lSysOutputText as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function lSysOutputText_CreateFcn(hObject, eventdata, handles)
 % hObject    handle to lSysOutputText (see GCBO)
-
 
 function [forward, backward]=find_error(xa, x, eqns,vars)
 %forward error
@@ -1823,72 +1625,13 @@ for j=1:length(eqns)
 end %end of solution set loop
 backward = norm(y1, inf);
 
-
-
-function nonLinearSysOutput_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysOutput (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nonLinearSysOutput as text
-%        str2double(get(hObject,'String')) returns contents of nonLinearSysOutput as a double
-
-
-% --- Executes during object creation, after setting all properties.
 function nonLinearSysOutput_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysOutput (see GCBO)
-
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
 
-
-
-% --- Executes on slider movement.
-function slider3_Callback(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'Value') returns position of slider
-%        get(hObject,'Min') and get(hObject,'Max') to determine range of slider
-
-
-% --- Executes during object creation, after setting all properties.
-function slider3_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to slider3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: slider controls usually have a light gray background.
-if isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
-    set(hObject,'BackgroundColor',[.9 .9 .9]);
-end
-
-
-
-function nonLinearSysRootEdit_Callback(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysRootEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
-% Hints: get(hObject,'String') returns contents of nonLinearSysRootEdit as text
-%        str2double(get(hObject,'String')) returns contents of nonLinearSysRootEdit as a double
-
-
 % --- Executes during object creation, after setting all properties.
 function nonLinearSysRootEdit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to nonLinearSysRootEdit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
-
-% Hint: edit controls usually have a white background on Windows.
-%       See ISPC and COMPUTER.
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
