@@ -1197,7 +1197,7 @@ else
         while (RelForError > tol)
             x = xnew;
             iCount = iCount + 1;
-            G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b)
+            G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
             xnew = G;
             iCount = iCount + 1;
             RelForError = (norm(xnew-x))/(norm(xnew));
