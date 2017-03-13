@@ -1359,7 +1359,7 @@ end
 
 %GET initial guess
 x = str2num(get(handles.nonLinearSysInitialGuessEdit, 'string'));
-% disp(x);
+ 
 
 %GET initial matrix
 A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
@@ -1380,10 +1380,10 @@ nLSHandles = guidata(hObject);
 switch method
     case 1
         [appr_x] = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations, nLSHandles);
-        [forward, backward]=find_error(appr_x, root, eqns,vars);
+        [forward, backward]=find_error(transpose(appr_x), root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
-        
+       
         appr_x = sprintf('%0.5f, ',appr_x);
         appr_x = appr_x(1:end-2);
         
@@ -1434,8 +1434,7 @@ t = zeros(1,100);
 
 %begin iteration steps for calculating the solution of the system
 for i=1:number_of_iterations
-    %     disp('iteration: ');
-    %     disp(i);
+ 
     %solve for the solution set, s, to plug into later
     tic;
     a = zeros(length(eqns),1);
@@ -1453,11 +1452,7 @@ for i=1:number_of_iterations
     %a = array containing the solution variables [s1, s2, s3...],
     %sol_matrix = solution matrix to solve for the solution set (s1, s2, s3...)
     %solve the linear system of equations this will output the solution set
-    %{'a', 'b'}
-    %[1,1]
-    
-    %[(a+b), (a+(-b)), (a+b^2)]
-    %
+
     
     sol_set = linsolve(sol_matrix, a);
     if(isinf(sol_set))
@@ -1474,11 +1469,10 @@ for i=1:number_of_iterations
     x_values(i) = x(1);
     y_values(i) = x(2);
     prev_x = x;
-    %     disp(vpa(x,10))
+   
     x = x - sol_set;
     if((round(sum(prev_x - x), 16)) == 0)
-        %         disp('solution found at x = ');
-        %         disp(vpa(x))
+        
         figure
         subplot(2,1,1)       % add first plot in 2 x 1 grid
         plot(x_values,y_values)
@@ -1506,7 +1500,7 @@ for i=1:number_of_iterations
 end %repeat k times end of iteration loop
 
 if(diverge == 1)
-    %     disp('the solution appears to be diverging')
+  
     currStr = get(handles.nonLinearSysOutput, 'string');
     newStr = combineString(currStr, 'The solution appears to be diverging');
     set(handles.nonLinearSysOutput, 'string', newStr);
@@ -1534,7 +1528,7 @@ for j=1:length(eqns)
 end %end of solution set loop
 x1 = x_i;
 x1 = transpose(x1);
-% y1 = transpose(y1);
+
 x_values = zeros(1,100);
 y_values = zeros(1,100);
 t = zeros(1,100);
@@ -1547,23 +1541,21 @@ for i=1:number_of_iterations
     tic;
     x1 = x - A\y;
     disp(x1);
-    %x_val = num2cell(x1);
+ 
     y1 = zeros(length(eqns),1);
     for j=1:length(eqns)
         answer = subs(eqns(j), vars, transpose(x1));
         y1(j) = single(answer);
     end %end of solution set loop
-    if(round(y1, 16) == 0)
-        %         disp('solution found at x = ')
-        %         disp(vpa(x1,16))
-        %         disp('correct to 10 decimals digits')
+    if((round(sum(x - x1), 16)) == 0)
+        disp('solution found');
+        figure
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
         ylabel('Time to Compute (s)')
         return
     end
-    %     y1 = transpose(y1);
     
     %calculate new matrix A
     deltaY = y1 - y;
@@ -1588,17 +1580,17 @@ end
 
 function x1 = Broyden_2_Method(x_i, vars, eqns, B, number_of_iterations)
 %evaluate the functions at x
-%{(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
+
 disp(x_i)
 y1 = zeros(length(eqns),1);
 for j=1:length(eqns)
     answer = subs(eqns(j), vars, x_i);
     y1(j) = single(answer);
 end %end of solution set loop
-%y1 = cellfun(@(t) t(x{:}), eqns);
+
 x1 = x_i;
 x1 = transpose(x1);
-% y1 = transpose(y1);
+
 t = zeros(1,100);
 %begin iteration steps
 for i=1:number_of_iterations
@@ -1613,10 +1605,9 @@ for i=1:number_of_iterations
         answer = subs(eqns(j), vars, transpose(x1));
         y1(j) = single(answer);
     end %end of solution set loop
-    if(round(y1, 10) == 0)
-        %         disp('solution found at x = ')
-        %         disp(vpa(x1,10))
-        %         disp('correct to 10 decimals digits')
+    if((round(sum(x - x1), 16)) == 0)
+        disp('solution found')
+        figure
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
@@ -1624,7 +1615,7 @@ for i=1:number_of_iterations
         drawnow()
         return
     end
-    %y1 = transpose(y1);
+
     
     %calculate new matrix B
     deltaY = y1 - y;
@@ -1647,7 +1638,8 @@ function lSysOutputText_CreateFcn(hObject, eventdata, handles)
 
 function [forward, backward]=find_error(xa, x, eqns,vars)
 %forward error
-forward = norm((x - xa),inf);
+
+forward = norm((x - transpose(xa)),inf);
 
 %backward error
 y1 = zeros(1,length(eqns));
