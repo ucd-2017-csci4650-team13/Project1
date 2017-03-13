@@ -1120,7 +1120,6 @@ A = augA;
 A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
-opCount = 0;
 
 X = zeros();
 iterations = 10;
