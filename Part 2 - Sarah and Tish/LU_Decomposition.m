@@ -9,9 +9,15 @@
 %           Solution Vector x
 
 % input from user for now. may need to update.
-A = input('enter an initial matrix: \n');
-b = input('enter an initial vector: \n');
-
+function solution = LU_Decomposition(augA)
+%augA = [1 0 1; 0 1 1]
+rows = size(augA,1)
+columns = rows + 1
+A = augA
+A(:,columns) = []
+%A = input('enter an initial matrix: \n');
+b = augA(:,columns)
+opCount = 0
 
 
 % % % matrix A
@@ -82,8 +88,8 @@ c = L\Pb;
 opCount = opCount + n^2;
 
 %solve for x
-x = [];
-x = U\c;
+solution = [];
+solution = U\c;
 opCount = opCount + n^2;
 
 toc;
@@ -96,4 +102,4 @@ U
 fprintf('Permutation Matrix = \n');
 P
 fprintf('Solution vector = \n');
-x
+solution
