@@ -15,3 +15,5 @@ Add to path when prompted.
 
 
 Now whenever you open Matlab, you can simply type SuperSolver and the program will launch.
+
+Refer to [User Manual Group 1.3.docx] for further help.
