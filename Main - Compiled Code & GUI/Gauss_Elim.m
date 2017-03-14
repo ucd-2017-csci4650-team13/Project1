@@ -4,8 +4,6 @@
 % # of cols
 % row input csv values?
 function [solutions, errFlag] = Gauss_Elim(augA, handles)
-opiCount = 0;
-
 errFlag = false;
 solutions = zeros;
 n = size(augA, 1);
@@ -65,10 +63,11 @@ if errFlag == false
     for q = n:-1 : 1
         solutions(q) = augA(q, row + 1);
         for u = q+1:n
-            opiCount = opiCount + 1;
+            opCount = opCount + 1;
             solutions(q) = solutions(q) - augA(q,u)*solutions(u);
         end
         solutions(q) = solutions(q)/augA(q,q);
+        opCount = opCount + 1;
     end
     
     time = toc;
