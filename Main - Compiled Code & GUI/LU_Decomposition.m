@@ -81,6 +81,11 @@ c = L\Pb;
 opiCount = opiCount + n^2;
 
 %solve for x
+LStr = ['L = ', mat2str(L, 16)];
+UStr = ['U = ', mat2str(U, 16)];
+PStr = ['P = ', mat2str(P, 16)];
+LUStr = combineString(LStr, UStr);
+LUPStr = combineString(LUStr, PStr);
 solution = U\c;
 opiCount = opiCount + n^2;
 solution = solution';
@@ -88,5 +93,6 @@ time = toc;
 
 opsString = ['Number of Operations = ', num2str(opiCount)];
 timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
-newString = combineString(opsString, timeString);
+newString = combineString(LUPStr, opsString);
+newString = combineString(newString, timeString);
 set(handles.lSysOutputText, 'string', newString);
