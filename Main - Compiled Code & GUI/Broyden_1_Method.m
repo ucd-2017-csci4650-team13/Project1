@@ -23,7 +23,7 @@ for i=1:number_of_iterations
     y = y1;
     tic;
     x1 = x - A\y;
-    disp(x1);
+    %disp(x1);
  
     y1 = zeros(length(eqns),1);
     for j=1:length(eqns)
@@ -31,7 +31,7 @@ for i=1:number_of_iterations
         y1(j) = single(answer);
     end %end of solution set loop
     if((round(sum(x - x1), 16)) == 0)
-        disp('solution found');
+        %disp('solution found');
         figure
         plot(t)
         title('Time Complexity Graph')

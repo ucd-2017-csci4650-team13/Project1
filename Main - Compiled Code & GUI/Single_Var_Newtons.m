@@ -13,7 +13,6 @@ dx = 1;
 
 if r ~= Inf
     if(fprime(r) == 0)
-        fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
         linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
         set(handles.singleVarOutputText, 'string', linearString);
     else

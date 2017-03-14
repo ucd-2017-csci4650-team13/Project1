@@ -28,7 +28,6 @@ for k=1:iterations
     for j=1:N
         X(j)=(b(j)-A(j,[1:j-1,j+1:N])*P([1:j-1,j+1:N]))/A(j,j);     % slicing using coefficients to solve for uk and vk
     end
-    opiCount = opiCount + N^2;
     err=abs(norm(X'-P));
     relerr=err/(norm(X)+eps);
     P=X';
@@ -39,6 +38,7 @@ end
 
 if errFlag == false
     time = toc;
+    errStr = ['Forward Error = ', num2str(err)];
     opsString = ['Number of Iterations = ', num2str(k), ',Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newString = combineString(errStr, opsString);

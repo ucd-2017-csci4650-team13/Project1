@@ -19,14 +19,14 @@ for i=1:number_of_iterations
     tic;
     x1 = x - B*y;
     
-    display(x1);
+    %display(x1);
     y1 = zeros(length(eqns),1);
     for j=1:length(eqns)
         answer = subs(eqns(j), vars, transpose(x1));
         y1(j) = single(answer);
     end %end of solution set loop
     if((round(sum(x - x1), 16)) == 0)
-        disp('solution found')
+        %disp('solution found')
         figure
         plot(t)
         title('Time Complexity Graph')
@@ -50,20 +50,3 @@ figure, plot(t)
 title('Time vs Iterations')
 xlabel('Iterations')
 ylabel('Time to Compute (s)')
-
-% --- Executes during object creation, after setting all properties.
-function lSysOutputText_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to lSysOutputText (see GCBO)
-
-function [forward, backward]=find_error(xa, x, eqns,vars)
-%forward error
-
-forward = norm((x - transpose(xa)),inf);
-
-%backward error
-y1 = zeros(1,length(eqns));
-for j=1:length(eqns)
-    answer = subs(eqns(j), vars, x);
-    y1(j) = single(answer);
-end %end of solution set loop
-backward = norm(y1, inf);

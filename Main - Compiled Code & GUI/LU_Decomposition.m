@@ -75,13 +75,12 @@ end
 
 %solve for c
 c = [];
-inv(L)
+inv(L);
 Pb = P*b;
 c = L\Pb;
 opiCount = opiCount + n^2;
 
 %solve for x
-solution = [];
 solution = U\c;
 opiCount = opiCount + n^2;
 solution = solution';

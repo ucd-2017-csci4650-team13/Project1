@@ -32,7 +32,7 @@ for i=1:number_of_iterations
     
     sol_set = linsolve(sol_matrix, a);
     if(isinf(sol_set))
-        warning('The system of equations does not converge')
+        warning('The system of equations does not converge');
         return
     end
     sol_set = double(sol_set);

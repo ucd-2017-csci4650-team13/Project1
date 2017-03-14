@@ -336,6 +336,8 @@ Tol = str2double(get(handles.singleVarToleranceEdit, 'string'));
 r = str2double(get(handles.singleVarRootEdit, 'string'));
 maxIterations = str2double(get(handles.singleVarIterationsEdit, 'string'));
 
+
+
 errFlag = false; % Indicates if the methods have stopped
 
 % Checks for valid/complete input
@@ -582,7 +584,7 @@ if emptyFlag == false
                  end
                 if errFlag == false
                     P = str2double(retrievedGuess);
-                    [sol, errFlag] = Jacobi(augA, P, linHandles);
+                    [sol, errFlag] = Jacobi(augA, P, Tol, iterations, linHandles);
                 end
             otherwise
                 if isnan(omega)
@@ -641,6 +643,10 @@ else
         'rowName', 'Guesses',...
         'ColumnEditable',true);
 end
+
+%==============================
+% Linear Systems Methods
+%==============================
 
 % -------------------------
 % --- NONLINEAR SYSTEMS ---
@@ -743,7 +749,7 @@ function nonLinearMultiVarSolveButton_Callback(hObject, eventdata, handles)
 
 % Hint: get(hObject,'Value') returns toggle state of nonLinearMultiVarSolveButton
 method = get(handles.nonLinearSysListBox, 'value');
-disp(method);
+%disp(method);
 %get variable list
 variables = get(handles.nonLinearSysVarsListEdit, 'string');
 ca = {};
@@ -834,6 +840,10 @@ function nonLinearSysBroydenMatrixEdit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+% --- Executes during object creation, after setting all properties.
+function lSysOutputText_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to lSysOutputText (see GCBO)
 
 function nonLinearSysOutput_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))

@@ -24,7 +24,6 @@ tic;
 for r=1:n
     % Sum of the entire row minus the diagonal
     rowSum = sumabs(A(r,:)) - abs(A(r, r));
-    iCount = iCount + 1;
     % Check if diagonal is strictly greater than the row sum
     if (abs(A(r,r)) < rowSum)
         % If not, note it
@@ -52,13 +51,15 @@ else
     %N = (1 - w)*D - w*U;
     %G = M\N;
     G = (inv(D+w*L))*(((1-w)*D-w*U)*x +w*b);
-    iCount = iCount + 1;
     %fprintf('Iteration 1: ', G);
     datasave = [];
     % begin iteration
     for iter = 1:max_it
         xnew = G;
         RelForError = (norm(xnew-x))/(norm(xnew));
+        if (RelForError <= tol)
+            break
+        end
         iCount = iCount + 1;
         % update approximation
         while (RelForError > tol)
@@ -85,11 +86,10 @@ else
     
     % for function return
     x = xnew;
-    error = RelForError;
-    iter = iCount;
+    %error = RelForError;
     
     time = toc;
-    opsStr = ['Number of Iterations = ', num2str(iter), ',Operations = ', num2str(iCount)];
+    opsStr = ['Number of Iterations = ', num2str(iter)];%, ',Operations = ', num2str(iCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combineString(GSStr, convStr);
     newStr = combineString(newStr, opsStr);
