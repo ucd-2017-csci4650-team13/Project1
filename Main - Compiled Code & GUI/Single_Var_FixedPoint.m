@@ -10,20 +10,23 @@ ticks = 0;
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
-fprimeofr = fprime(r);
-if abs(fprimeofr) > 1
-    divStr = ['Since |g''(r)| = ', num2str(abs(fprimeofr)), ' > 1, FPI may not converge'];
-    set(handles.singleVarOutputText, 'string', divStr);
-elseif fprimeofr == 0
-    set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
-else
-    linConStr = ['Since |g''(r)| < 1, FPI will be linearly convergent with rate ', num2str(abs(fprimeofr))];
-    set(handles.singleVarOutputText, 'string', linConStr);
+if r ~= Inf
+    fprimeofr = fprime(r);
+    if abs(fprimeofr) > 1
+        divStr = ['Since |g''(r)| = ', num2str(abs(fprimeofr)), ' > 1, FPI may not converge'];
+        set(handles.singleVarOutputText, 'string', divStr);
+    elseif fprimeofr == 0
+        set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
+    else
+        linConStr = ['Since |g''(r)| < 1, FPI will be linearly convergent with rate ', num2str(abs(fprimeofr))];
+        set(handles.singleVarOutputText, 'string', linConStr);
+    end
+    if r ~= Inf
+        errList(1) = abs(xList(1) - r);
+    end
 end
 xList(1) = x0;
-if r ~= Inf
-    errList(1) = abs(xList(1) - r);
-end
+
 % Runs until root approximated or number of iterations reached
 
 for i = 1:maxIterations
