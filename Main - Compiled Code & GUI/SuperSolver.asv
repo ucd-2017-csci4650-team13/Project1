@@ -430,66 +430,66 @@ end
 % Single Variable Methods
 %==============================
 
-function [xList, errList, errorFlag, i] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
-xList = zeros();                        % List of x values calculated for graphing and tables
-errList = zeros();
-xList(1) = x0;                          % Set the first element of the list to the initial guess
-errList(1) = abs(xList(1) - r);         % List of ei
-errorFlag = false;
-f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
-fprime = matlabFunction(diff(infxn));   % First derivative of f
-iCount = zeros();
-difference = zeros();
-ticks = 0;
-dx = 1;
-
-if r ~= Inf
-    if(fprime(r) == 0)
-        fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
-        linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
-        set(handles.singleVarOutputText, 'string', linearString);
-    else
-        fprintf('The method will converge quadratically.');
-        quadConString = 'The method will converge quadratically.';
-        set(handles.singleVarOutputText, 'string', quadConString);
-    end
-end
-
-for i = 1:maxIterations
-    iCount(i) = i-1;
-    fofx = f(xList(i));
-    fpofx = fprime(xList(i));
-    
-    if(fpofx == 0 || abs(fpofx) == Inf)
-        errorString = ['The derivative of the function at ', num2str(xList(i)), ' is 0, try another initial guess'];
-        set(handles.singleVarOutputText, 'string', errorString);
-        errorFlag = true;
-        break;
-    end
-    
-    xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
-    difference(i+1) = abs(xList(i+1) - xList(i));
-    if (difference(i) > 2 && difference(i) < difference(i + 1))
-        ticks = ticks + 1;
-    end
-    
-    if (ticks > 3)
-        currStr = get(handles.singleVarOutputText, 'string');
-        divStr = 'The answer is diverging.';
-        newStr = combineString(currStr, divStr);
-        set(handles.singleVarOutputText, 'string', newStr);
-        errorFlag = true;
-        break;
-    end
-    
-    if r ~= Inf
-        errList(i+1) = abs(xList(i+1) - r);                % Gets forward error of current iteration
-    end
-    % Checks if the difference in x values has converged
-    if (dx <= Tol || abs(fofx) <= Tol)
-        break;
-    end
-end
+% % function [xList, errList, errorFlag, i] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
+% % xList = zeros();                        % List of x values calculated for graphing and tables
+% % errList = zeros();
+% % xList(1) = x0;                          % Set the first element of the list to the initial guess
+% % errList(1) = abs(xList(1) - r);         % List of ei
+% % errorFlag = false;
+% % f = matlabFunction(infxn);              % Convert the symbolic function to a function handle
+% % fprime = matlabFunction(diff(infxn));   % First derivative of f
+% % iCount = zeros();
+% % difference = zeros();
+% % ticks = 0;
+% % dx = 1;
+% % 
+% % if r ~= Inf
+% %     if(fprime(r) == 0)
+% %         fprintf('f''(r) = 0 so Newton''s Method will be linearly convergent\n');
+% %         linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
+% %         set(handles.singleVarOutputText, 'string', linearString);
+% %     else
+% %         fprintf('The method will converge quadratically.');
+% %         quadConString = 'The method will converge quadratically.';
+% %         set(handles.singleVarOutputText, 'string', quadConString);
+% %     end
+% % end
+% % 
+% % for i = 1:maxIterations
+% %     iCount(i) = i-1;
+% %     fofx = f(xList(i));
+% %     fpofx = fprime(xList(i));
+% %     
+% %     if(fpofx == 0 || abs(fpofx) == Inf)
+% %         errorString = ['The derivative of the function at ', num2str(xList(i)), ' is 0, try another initial guess'];
+% %         set(handles.singleVarOutputText, 'string', errorString);
+% %         errorFlag = true;
+% %         break;
+% %     end
+% %     
+% %     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
+% %     difference(i+1) = abs(xList(i+1) - xList(i));
+% %     if (difference(i) > 2 && difference(i) < difference(i + 1))
+% %         ticks = ticks + 1;
+% %     end
+% %     
+% %     if (ticks > 3)
+% %         currStr = get(handles.singleVarOutputText, 'string');
+% %         divStr = 'The answer is diverging.';
+% %         newStr = combineString(currStr, divStr);
+% %         set(handles.singleVarOutputText, 'string', newStr);
+% %         errorFlag = true;
+% %         break;
+% %     end
+% %     
+% %     if r ~= Inf
+% %         errList(i+1) = abs(xList(i+1) - r);                % Gets forward error of current iteration
+% %     end
+% %     % Checks if the difference in x values has converged
+% %     if (dx <= Tol || abs(fofx) <= Tol)
+% %         break;
+% %     end
+% end
 
 % iCount(i+1) = i;
 % figure
@@ -507,58 +507,58 @@ end
 % Returns list of calculated x values
 
 
-function [xList, errList, errorFlag, i] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, handles)
-%Tol = 0.00000001;       % Stopping criteria
-xList = zeros;          % Have x be a list for creating graphs
-errorFlag = false;
-errList = zeros;
-iCount = zeros;
-difference = zeros;
-difference(1) = 0;
-ticks = 0;
-f = matlabFunction(infxn);
-fprime = matlabFunction(diff(infxn));
-% TODO check for convergence
-fprimeofr = fprime(r);
-if abs(fprimeofr) > 1
-    divStr = ['Since |g''(r)| = ', num2str(abs(fprimeofr)), ' > 1, FPI may not converge'];
-    set(handles.singleVarOutputText, 'string', divStr);
-elseif fprimeofr == 0
-    set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
-else
-    linConStr = ['Since |g''(r)| < 1, FPI will be linearly convergent with rate ', num2str(abs(fprimeofr))];
-    set(handles.singleVarOutputText, 'string', linConStr);
-end
-xList(1) = x0;
-if r ~= Inf
-    errList(1) = abs(xList(1) - r);
-end
-% Runs until root approximated or number of iterations reached
-
-for i = 1:maxIterations
-    iCount(i) = i-1;
-    xList(i+1) = f(xList(i));           % Get next x from result of current x
-    if r ~= Inf
-        errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
-    end
-    dx = abs(xList(i+1) - xList(i));    % Tracks amount result changed
-    if abs(dx) < Tol
-        break;
-    end
-    difference(i+1) = abs(xList(i+1) - xList(i));
-    if (difference(i) > 2 && difference(i) < difference(i + 1))
-        ticks = ticks + 1;
-    end
-    
-    if (ticks > 3)
-        currStr = get(handles.singleVarOutputText, 'string');
-        divStr = 'The answer is diverging.';
-        newStr = combineString(currStr, divStr);
-        set(handles.singleVarOutputText, 'string', newStr);
-        errorFlag = true;
-        break;
-    end
-end
+% function [xList, errList, errorFlag, i] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, handles)
+% %Tol = 0.00000001;       % Stopping criteria
+% xList = zeros;          % Have x be a list for creating graphs
+% errorFlag = false;
+% errList = zeros;
+% iCount = zeros;
+% difference = zeros;
+% difference(1) = 0;
+% ticks = 0;
+% f = matlabFunction(infxn);
+% fprime = matlabFunction(diff(infxn));
+% % TODO check for convergence
+% fprimeofr = fprime(r);
+% if abs(fprimeofr) > 1
+%     divStr = ['Since |g''(r)| = ', num2str(abs(fprimeofr)), ' > 1, FPI may not converge'];
+%     set(handles.singleVarOutputText, 'string', divStr);
+% elseif fprimeofr == 0
+%     set(handles.singleVarOutputText, 'string', 'Since g''(r) = 0, FPI will be quadratically convergent')
+% else
+%     linConStr = ['Since |g''(r)| < 1, FPI will be linearly convergent with rate ', num2str(abs(fprimeofr))];
+%     set(handles.singleVarOutputText, 'string', linConStr);
+% end
+% xList(1) = x0;
+% if r ~= Inf
+%     errList(1) = abs(xList(1) - r);
+% end
+% % Runs until root approximated or number of iterations reached
+% 
+% for i = 1:maxIterations
+%     iCount(i) = i-1;
+%     xList(i+1) = f(xList(i));           % Get next x from result of current x
+%     if r ~= Inf
+%         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
+%     end
+%     dx = abs(xList(i+1) - xList(i));    % Tracks amount result changed
+%     if abs(dx) < Tol
+%         break;
+%     end
+%     difference(i+1) = abs(xList(i+1) - xList(i));
+%     if (difference(i) > 2 && difference(i) < difference(i + 1))
+%         ticks = ticks + 1;
+%     end
+%     
+%     if (ticks > 3)
+%         currStr = get(handles.singleVarOutputText, 'string');
+%         divStr = 'The answer is diverging.';
+%         newStr = combineString(currStr, divStr);
+%         set(handles.singleVarOutputText, 'string', newStr);
+%         errorFlag = true;
+%         break;
+%     end
+% end
 %iCount(i+1) = i;
 
 % figure
@@ -574,45 +574,45 @@ end
 % and tolerance tol
 %Output: Approximate solution xc
 
-function [cList, errList, errorFlag, i] = Bisection(infxn,a,b,r,tol, maxIterations, handles)
-f = matlabFunction(infxn);
-errorFlag = false;
-iCount = zeros;
-cList = zeros;
-
-errList = zeros;
-i = 0;
-
-if sign(f(a))*sign(f(b)) >= 0
-    errorString = 'f(a)f(b)<0, Intermediate Value Theorem not satisfied!'; %ceases exe  cution
-    set(handles.singleVarOutputText, 'string', errorString);
-    errorFlag = true;
-else
-    cList = zeros;
-    fa=f(a);
-    
-    %fb=f(b);
-    for i = 1:maxIterations
-        iCount(i) = i-1;
-        cList(i)=(a+b)/2;
-        if r ~= Inf
-            errList(i) = abs(cList(i) - r);                % Gets forward error of current iteration
-        end
-        
-        fc=f(cList(i));
-        if fc == 0 || (b-a)/2<tol               %c is a solution or below the tolerance, done
-            break
-        end
-        if sign(fc)*sign(fa)<0 %a and c make the new interval
-            b=cList(i);%fb=fc;
-        else %c and b make the new interval
-            a=cList(i);fa=fc;
-        end
-    end
-    cList(i)=(a+b)/2; %new midpoint is best estimate
-    
-end
-i = i - 1;
+% function [cList, errList, errorFlag, i] = Bisection(infxn,a,b,r,tol, maxIterations, handles)
+% f = matlabFunction(infxn);
+% errorFlag = false;
+% iCount = zeros;
+% cList = zeros;
+% 
+% errList = zeros;
+% i = 0;
+% 
+% if sign(f(a))*sign(f(b)) >= 0
+%     errorString = 'f(a)f(b)<0, Intermediate Value Theorem not satisfied!'; %ceases exe  cution
+%     set(handles.singleVarOutputText, 'string', errorString);
+%     errorFlag = true;
+% else
+%     cList = zeros;
+%     fa=f(a);
+%     
+%     %fb=f(b);
+%     for i = 1:maxIterations
+%         iCount(i) = i-1;
+%         cList(i)=(a+b)/2;
+%         if r ~= Inf
+%             errList(i) = abs(cList(i) - r);                % Gets forward error of current iteration
+%         end
+%         
+%         fc=f(cList(i));
+%         if fc == 0 || (b-a)/2<tol               %c is a solution or below the tolerance, done
+%             break
+%         end
+%         if sign(fc)*sign(fa)<0 %a and c make the new interval
+%             b=cList(i);%fb=fc;
+%         else %c and b make the new interval
+%             a=cList(i);fa=fc;
+%         end
+%     end
+%     cList(i)=(a+b)/2; %new midpoint is best estimate
+%     
+% end
+% i = i - 1;
 % if errorFlag ~= true
 %     figure
 %     plot(iCount, cList);
@@ -621,48 +621,48 @@ i = i - 1;
 %     ylabel('c');
 %     title('Bisection');
 % end
-% function to calculate forward error, backward error, and error
-% magnification of methods used to solve single variable equations
-% Pass in original syms function, its derivative, the real root, and the
-% approximate root
-function calcError(func, deriv, r, xa, handles, i)
-derivErrorFlag = false;
-% might have to remove error magnification or find alternative for gpow
-
-backwardErr = double(abs(subs(func,xa)));
-approxStr = 'Approximate Root = ';
-if r ~= Inf
-    forwardErr = abs(r - xa);
-    rootM = getRootMultiplicity(func, r);
-    realString = 'Real Root = ';
-    mString = ' has multiplicity = ';
-    fString = 'Forward Error = ';
-    forwardStr = sprintf('%s%s%s%s\n%s%s', realString, num2str(r, '%20.10f'), mString, num2str(rootM, '%20.10f'), fString, num2str(forwardErr, '%20.10f'));
-    try
-        gPow = feval(symengine, 'degree', func);    % Gets g(x) from highest degree of the equations, func has to be symbolic for degree() to work
-        gofr = r^gPow;                              % g(r) will just be r^degree
-        magError = double(abs(gofr/(r*feval(deriv, r))));   % Calculating the magnitude of error from equation on page 49
-    catch
-        derivErrorFlag = true;
-    end
-end
-
-iterationsString = ['Number of Iterations = ', num2str(i)];
-bString = 'Backward Error = ';
-currString = get(handles.singleVarOutputText, 'string');
-newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
-statusString = combineString(currString, iterationsString);
-statusString = combineString(statusString, newString);
-if r ~= Inf
-    statusString = combineString(statusString, forwardStr);
-end
-if derivErrorFlag == false && r ~= Inf
-    digits = floor(log10(magError*10));
-    errorMagStr = ['The function has an error magnification of: ', num2str(magError), ', ', num2str(digits), ' digits of accuracy are lost.'];
-    statusString = combineString(statusString, errorMagStr);
-end
-set(handles.singleVarOutputText, 'string', statusString);
-% Remove and return the error magnifcation when integrating code
+% % function to calculate forward error, backward error, and error
+% % magnification of methods used to solve single variable equations
+% % Pass in original syms function, its derivative, the real root, and the
+% % approximate root
+% function calcError(func, deriv, r, xa, handles, i)
+% derivErrorFlag = false;
+% % might have to remove error magnification or find alternative for gpow
+% 
+% backwardErr = double(abs(subs(func,xa)));
+% approxStr = 'Approximate Root = ';
+% if r ~= Inf
+%     forwardErr = abs(r - xa);
+%     rootM = getRootMultiplicity(func, r);
+%     realString = 'Real Root = ';
+%     mString = ' has multiplicity = ';
+%     fString = 'Forward Error = ';
+%     forwardStr = sprintf('%s%s%s%s\n%s%s', realString, num2str(r, '%20.10f'), mString, num2str(rootM, '%20.10f'), fString, num2str(forwardErr, '%20.10f'));
+%     try
+%         gPow = feval(symengine, 'degree', func);    % Gets g(x) from highest degree of the equations, func has to be symbolic for degree() to work
+%         gofr = r^gPow;                              % g(r) will just be r^degree
+%         magError = double(abs(gofr/(r*feval(deriv, r))));   % Calculating the magnitude of error from equation on page 49
+%     catch
+%         derivErrorFlag = true;
+%     end
+% end
+% 
+% iterationsString = ['Number of Iterations = ', num2str(i)];
+% bString = 'Backward Error = ';
+% currString = get(handles.singleVarOutputText, 'string');
+% newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
+% statusString = combineString(currString, iterationsString);
+% statusString = combineString(statusString, newString);
+% if r ~= Inf
+%     statusString = combineString(statusString, forwardStr);
+% end
+% if derivErrorFlag == false && r ~= Inf
+%     digits = floor(log10(magError*10));
+%     errorMagStr = ['The function has an error magnification of: ', num2str(magError), ', ', num2str(digits), ' digits of accuracy are lost.'];
+%     statusString = combineString(statusString, errorMagStr);
+% end
+% set(handles.singleVarOutputText, 'string', statusString);
+% % Remove and return the error magnifcation when integrating code
 
 function multiplicity = getRootMultiplicity(fnx, x)
 multiplicity = 0;
@@ -1120,12 +1120,12 @@ for k=1:iterations
     if (err<Tol)||(relerr<Tol)
         break
     end
-    opiCount = opiCount + N^2
+    opiCount = opiCount + N^2;
 end
 
 if errFlag == false
     time = toc;
-    opsString = ['Number of Operations = ', num2str(opiCount)];
+    opsString = ['Number of Iterations = ', num2str(k), ',Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newString = combineString(opsString, timeString);
     set(handles.lSysOutputText, 'string', newString);
@@ -1222,7 +1222,7 @@ else
     iter = iCount;
     
     time = toc;
-    opsStr = ['Number of Operations = ', num2str(iCount)];
+    opsStr = ['Number of Iterations = ', num2str(iter), ',Operations = ', num2str(iCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
     newStr = combineString(GSStr, convStr);
     newStr = combineString(newStr, opsStr);
@@ -1359,7 +1359,7 @@ end
 
 %GET initial guess
 x = str2num(get(handles.nonLinearSysInitialGuessEdit, 'string'));
-% disp(x);
+ 
 
 %GET initial matrix
 A = str2num(get(handles.nonLinearSysBroydenMatrixEdit, 'string'));
@@ -1380,10 +1380,10 @@ nLSHandles = guidata(hObject);
 switch method
     case 1
         [appr_x] = Multi_Var_Newton_Method(vars, x, eqns, number_of_iterations, nLSHandles);
-        [forward, backward]=find_error(appr_x, root, eqns,vars);
+        [forward, backward]=find_error(transpose(appr_x), root, eqns,vars);
         forwardSpec = sprintf('Forward error is %4.2f%s\n%s', forward);
         backwardSpec = sprintf('Backward error is %4.2f%s\n%s', backward);
-        
+       
         appr_x = sprintf('%0.5f, ',appr_x);
         appr_x = appr_x(1:end-2);
         
@@ -1434,8 +1434,7 @@ t = zeros(1,100);
 
 %begin iteration steps for calculating the solution of the system
 for i=1:number_of_iterations
-    %     disp('iteration: ');
-    %     disp(i);
+ 
     %solve for the solution set, s, to plug into later
     tic;
     a = zeros(length(eqns),1);
@@ -1453,11 +1452,7 @@ for i=1:number_of_iterations
     %a = array containing the solution variables [s1, s2, s3...],
     %sol_matrix = solution matrix to solve for the solution set (s1, s2, s3...)
     %solve the linear system of equations this will output the solution set
-    %{'a', 'b'}
-    %[1,1]
-    
-    %[(a+b), (a+(-b)), (a+b^2)]
-    %
+
     
     sol_set = linsolve(sol_matrix, a);
     if(isinf(sol_set))
@@ -1474,11 +1469,10 @@ for i=1:number_of_iterations
     x_values(i) = x(1);
     y_values(i) = x(2);
     prev_x = x;
-    %     disp(vpa(x,10))
+   
     x = x - sol_set;
     if((round(sum(prev_x - x), 16)) == 0)
-        %         disp('solution found at x = ');
-        %         disp(vpa(x))
+        
         figure
         subplot(2,1,1)       % add first plot in 2 x 1 grid
         plot(x_values,y_values)
@@ -1506,7 +1500,7 @@ for i=1:number_of_iterations
 end %repeat k times end of iteration loop
 
 if(diverge == 1)
-    %     disp('the solution appears to be diverging')
+  
     currStr = get(handles.nonLinearSysOutput, 'string');
     newStr = combineString(currStr, 'The solution appears to be diverging');
     set(handles.nonLinearSysOutput, 'string', newStr);
@@ -1534,7 +1528,7 @@ for j=1:length(eqns)
 end %end of solution set loop
 x1 = x_i;
 x1 = transpose(x1);
-% y1 = transpose(y1);
+
 x_values = zeros(1,100);
 y_values = zeros(1,100);
 t = zeros(1,100);
@@ -1547,23 +1541,21 @@ for i=1:number_of_iterations
     tic;
     x1 = x - A\y;
     disp(x1);
-    %x_val = num2cell(x1);
+ 
     y1 = zeros(length(eqns),1);
     for j=1:length(eqns)
         answer = subs(eqns(j), vars, transpose(x1));
         y1(j) = single(answer);
     end %end of solution set loop
-    if(round(y1, 16) == 0)
-        %         disp('solution found at x = ')
-        %         disp(vpa(x1,16))
-        %         disp('correct to 10 decimals digits')
+    if((round(sum(x - x1), 16)) == 0)
+        disp('solution found');
+        figure
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
         ylabel('Time to Compute (s)')
         return
     end
-    %     y1 = transpose(y1);
     
     %calculate new matrix A
     deltaY = y1 - y;
@@ -1588,17 +1580,17 @@ end
 
 function x1 = Broyden_2_Method(x_i, vars, eqns, B, number_of_iterations)
 %evaluate the functions at x
-%{(@(u,v)u^2+v^2-1) ,   (@(u,v)(u-1)^2+v^2-1)}
+
 disp(x_i)
 y1 = zeros(length(eqns),1);
 for j=1:length(eqns)
     answer = subs(eqns(j), vars, x_i);
     y1(j) = single(answer);
 end %end of solution set loop
-%y1 = cellfun(@(t) t(x{:}), eqns);
+
 x1 = x_i;
 x1 = transpose(x1);
-% y1 = transpose(y1);
+
 t = zeros(1,100);
 %begin iteration steps
 for i=1:number_of_iterations
@@ -1613,10 +1605,9 @@ for i=1:number_of_iterations
         answer = subs(eqns(j), vars, transpose(x1));
         y1(j) = single(answer);
     end %end of solution set loop
-    if(round(y1, 10) == 0)
-        %         disp('solution found at x = ')
-        %         disp(vpa(x1,10))
-        %         disp('correct to 10 decimals digits')
+    if((round(sum(x - x1), 16)) == 0)
+        disp('solution found')
+        figure
         plot(t)
         title('Time Complexity Graph')
         xlabel('Iterations')
@@ -1624,7 +1615,7 @@ for i=1:number_of_iterations
         drawnow()
         return
     end
-    %y1 = transpose(y1);
+
     
     %calculate new matrix B
     deltaY = y1 - y;
@@ -1647,7 +1638,8 @@ function lSysOutputText_CreateFcn(hObject, eventdata, handles)
 
 function [forward, backward]=find_error(xa, x, eqns,vars)
 %forward error
-forward = norm((x - xa),inf);
+
+forward = norm((x - transpose(xa)),inf);
 
 %backward error
 y1 = zeros(1,length(eqns));
