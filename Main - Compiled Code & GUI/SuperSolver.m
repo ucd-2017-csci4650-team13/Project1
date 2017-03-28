@@ -545,12 +545,13 @@ end
 % --- Executes on button press in linearSysSolveButton.
 function linearSysSolveButton_Callback(hObject, ~, handles)
 linHandles = guidata(hObject);
-emptyFlag = false;
+emptyFlag = true;
 global tableInput;
 global initialMatrixInput;
 
 try
     retrievedData = get(tableInput, 'data');
+    emptyFlag = false;
 catch
     set(handles.lSysOutputText, 'string', 'Error: Missing matrix input.');
     emptyFlag = true;
@@ -569,7 +570,7 @@ if emptyFlag == false
         fprintf('Need Input')
     else
         sol = [];
-        errFlag = false;
+        errFlag = true;
         switch method
             case 1
                 [sol, errFlag] = Gauss_Elim(augA, linHandles);
@@ -578,6 +579,7 @@ if emptyFlag == false
             case 3
                  try
                     retrievedGuess = get(initialMatrixInput, 'data');
+                    errFlag = false;
                  catch
                     set(handles.lSysOutputText, 'string', 'Error: missing guess matrix input');
                      errFlag = true;
@@ -591,9 +593,17 @@ if emptyFlag == false
                     errStr = 'need input';
                     set(handles.lSysOutputText, 'string', errStr);
                 else
-                    retrievedGuess = get(initialMatrixInput, 'data');
-                    x0 = str2double(retrievedGuess);
-                    [sol, errFlag] = SOR(augA, x0, omega, iterations, Tol, linHandles);
+                    try
+                        retrievedGuess = get(initialMatrixInput, 'data');
+                        errFlag = false;
+                    catch
+                        set(handles.lSysOutputText, 'string', 'Error: missing guess matrix input');
+                        errFlag = true;
+                    end
+                    if errFlag == false
+                        x0 = str2double(retrievedGuess);
+                        [sol, errFlag] = SOR(augA, x0, omega, iterations, Tol, linHandles);
+                    end
                 end
         end
         set(handles.SimpleOptimizedTab, 'HandleVisibility', 'off');

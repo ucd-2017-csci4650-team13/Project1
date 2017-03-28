@@ -9,7 +9,7 @@ opiCount = 0;
 X = zeros();
 N = length(b);
 errFlag = false;
-
+convergenceStr = '';
 % Check if A is strictly diagonally dominant
 % For each row in matrix A
 for r=1:N
@@ -41,7 +41,7 @@ if errFlag == false
     time = toc;
     opsString = ['Number of Iterations = ', num2str(k), ',Operations = ', num2str(opiCount)];
     timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
-    newString = combineString(errStr, opsString);
+    newString = combineString(convergenceStr, opsString);
     newString = combineString(newString, timeString);
     set(handles.lSysOutputText, 'string', newString);
 end
