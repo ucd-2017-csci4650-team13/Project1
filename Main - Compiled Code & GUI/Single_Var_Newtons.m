@@ -1,4 +1,4 @@
-function [xList, errList, errorFlag, i] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
+function [xList, errList, errorFlag, i, opCount, timeStr] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, handles)
 xList = zeros();                        % List of x values calculated for graphing and tables
 errList = zeros();
 xList(1) = x0;                          % Set the first element of the list to the initial guess
@@ -10,13 +10,14 @@ iCount = zeros();
 difference = zeros();
 ticks = 0;
 dx = 1;
+opCount = 0;
 
+tic;
 if r ~= Inf
     if(fprime(r) == 0)
         linearString = '\n f''(r) = 0 so Newton''s Method will be linearly convergent.';
         set(handles.singleVarOutputText, 'string', linearString);
     else
-        fprintf('The method will converge quadratically.');
         quadConString = 'The method will converge quadratically.';
         set(handles.singleVarOutputText, 'string', quadConString);
     end
@@ -25,8 +26,9 @@ end
 for i = 1:maxIterations
     iCount(i) = i-1;
     fofx = f(xList(i));
+    opCount = opCount + 1;
     fpofx = fprime(xList(i));
-    
+    opCount = opCount + 1;
     if(fpofx == 0 || abs(fpofx) == Inf)
         errorString = ['The derivative of the function at ', num2str(xList(i)), ' is 0, try another initial guess'];
         set(handles.singleVarOutputText, 'string', errorString);
@@ -35,7 +37,9 @@ for i = 1:maxIterations
     end
     
     xList(i+1) = xList(i) - fofx/fpofx ;             % Gets the next value of x
+    opCount = opCount + 2;
     difference(i+1) = abs(xList(i+1) - xList(i));
+    opCount = opCount + 1;
     if (difference(i) > 2 && difference(i) < difference(i + 1))
         ticks = ticks + 1;
     end
@@ -57,3 +61,4 @@ for i = 1:maxIterations
         break;
     end
 end
+timeStr = toc;

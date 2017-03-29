@@ -352,6 +352,8 @@ else
     xList = zeros();
     errList = zeros();
     iterations = 0;
+    opCount = 0;
+    %timeStr;
     if isnan(r)
         r = Inf;    % Checks to see if user entered real rool, can run in different manner
     end
@@ -370,15 +372,15 @@ else
                 set(handles.singleVarOutputText, 'string', rangeErrString2);
                 errFlag = true;
             else
-                [xList, errList, errFlag, iterations] = Bisection(infxn, a, b, r, Tol, maxIterations, outhandles);
+                [xList, errList, errFlag, iterations, opCount, timeStr] = Bisection(infxn, a, b, r, Tol, maxIterations, outhandles);
             end
         case 2
-            [xList, errList, errFlag, iterations] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, outhandles);
+            [xList, errList, errFlag, iterations, opCount, timeStr] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, outhandles);
         otherwise
-            [xList, errList, errFlag, iterations] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, outhandles);
+            [xList, errList, errFlag, iterations, opCount, timeStr] = Single_Var_Newtons(infxn, x0, r, Tol, maxIterations, outhandles);
     end
     if errFlag == false
-        calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations);
+        calcError(infxn, matlabFunction(diff(infxn)), r, xList(end), outhandles, iterations, opCount, timeStr);
     end
     if length(xList) > 1
         f = figure(1);

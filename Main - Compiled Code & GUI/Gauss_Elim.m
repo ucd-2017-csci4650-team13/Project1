@@ -53,7 +53,7 @@ for j = 1:n-1 % n-1 = num of rows - the 1st row
         % subtract multiplier * the row from
         for index = 1:col
             augA(i, index) = (augA(i, index) - (multi * augA(j, index)));
-            opCount = opCount + 1;
+            opCount = opCount + 2;
         end
     end
 end
@@ -63,7 +63,7 @@ if errFlag == false
     for q = n:-1 : 1
         solutions(q) = augA(q, row + 1);
         for u = q+1:n
-            opCount = opCount + 1;
+            opCount = opCount + 2;
             solutions(q) = solutions(q) - augA(q,u)*solutions(u);
         end
         solutions(q) = solutions(q)/augA(q,q);

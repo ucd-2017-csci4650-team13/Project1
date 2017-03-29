@@ -1,4 +1,4 @@
-function [xList, errList, errorFlag, i] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, handles)
+function [xList, errList, errorFlag, i, opCount, timeStr] = Single_Var_FixedPoint(infxn, x0, r, Tol, maxIterations, handles)
 %Tol = 0.00000001;       % Stopping criteria
 xList = zeros;          % Have x be a list for creating graphs
 errorFlag = false;
@@ -7,6 +7,7 @@ iCount = zeros;
 difference = zeros;
 difference(1) = 0;
 ticks = 0;
+opCount = 0;
 f = matlabFunction(infxn);
 fprime = matlabFunction(diff(infxn));
 % TODO check for convergence
@@ -28,18 +29,21 @@ end
 xList(1) = x0;
 
 % Runs until root approximated or number of iterations reached
-
+tic;
 for i = 1:maxIterations
     iCount(i) = i-1;
     xList(i+1) = f(xList(i));           % Get next x from result of current x
+    opCount = opCount + 1;
     if r ~= Inf
         errList(i+1) = abs(xList(i) - r);                % Gets forward error of current iteration
     end
     dx = abs(xList(i+1) - xList(i));    % Tracks amount result changed
+    opCount = opCount + 1;
     if abs(dx) < Tol
         break;
     end
     difference(i+1) = abs(xList(i+1) - xList(i));
+    opCount = opCount + 1;
     if (difference(i) > 2 && difference(i) < difference(i + 1))
         ticks = ticks + 1;
     end
@@ -53,3 +57,4 @@ for i = 1:maxIterations
         break;
     end
 end
+timeStr = toc;

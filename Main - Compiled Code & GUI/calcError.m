@@ -2,7 +2,7 @@
 % magnification of methods used to solve single variable equations
 % Pass in original syms function, its derivative, the real root, and the
 % approximate root
-function calcError(func, deriv, r, xa, handles, i)
+function calcError(func, deriv, r, xa, handles, i, opCount, timeStr)
 derivErrorFlag = false;
 % might have to remove error magnification or find alternative for gpow
 
@@ -30,6 +30,10 @@ currString = get(handles.singleVarOutputText, 'string');
 newString = sprintf('%s%s\n%s%s%s%s\n%s%s\n%s%s\n', approxStr, num2str(xa, '%20.10f'), bString, num2str(backwardErr, '%20.10f'));
 statusString = combineString(currString, iterationsString);
 statusString = combineString(statusString, newString);
+operationsStr = ['Number of operations = ', num2str(opCount)];
+newTimeStr = ['Elapsed time = ', num2str(timeStr), ' seconds'];
+statusString = combineString(statusString, operationsStr);
+statusString = combineString(statusString, newTimeStr);
 if r ~= Inf
     statusString = combineString(statusString, forwardStr);
 end
