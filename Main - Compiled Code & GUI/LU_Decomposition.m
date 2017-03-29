@@ -35,8 +35,8 @@ P = eye(n);
 tic;
 for k = 1:n
     if augA(k,k) == 0
-        opiCount = opiCount + 1;
-        error('zero pivot encountered');
+        msg = 'zero pivot encountered';
+        error(msg);
     end
     % create matrix pivot
     %  maximum absolute value from the k thru n rows, k column
