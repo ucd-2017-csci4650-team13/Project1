@@ -4,6 +4,7 @@ columns = rows + 1;
 A = augA;
 A(:,columns) = [];
 b = augA(:,columns);
+P = P';
 opiCount = 0;
 
 X = zeros();

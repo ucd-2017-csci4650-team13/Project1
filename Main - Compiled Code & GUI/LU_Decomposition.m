@@ -18,6 +18,7 @@ A(:,columns) = [];
 %A = input('enter an initial matrix: \n');
 b = augA(:,columns);
 opiCount = 0;
+solution = zeros();
 errFlag = false;
 
 % size of n x n
@@ -34,6 +35,12 @@ P = eye(n);
 
 tic;
 for k = 1:n
+    if augA(k,k) == 0
+        errMsg = 'Error: Zero pivot encountered. Stopping...';
+        errFlag = true;
+        set(handles.lSysOutputText, 'string', errMsg);
+        break;
+    end
     % create matrix pivot
     %  maximum absolute value from the k thru n rows, k column
     [pivot i] = max(abs(U(k:n,k)));
@@ -73,26 +80,34 @@ for k = 1:n
     end % end gauss elim
 end
 
-%solve for c
-c = [];
-inv(L);
-Pb = P*b;
-c = L\Pb;
-opiCount = opiCount + n^2;
+if errFlag ~= true
+    %solve for c
+    c = [];
+    %inv(L);
+    Pb = P*b;
+    c = inv(L)*Pb;
+    %c = L\Pb;
+    opiCount = opiCount + n^2;    
+    %solve for x
 
-%solve for x
-LStr = ['L = ', mat2str(L, 16)];
-UStr = ['U = ', mat2str(U, 16)];
-PStr = ['P = ', mat2str(P, 16)];
-LUStr = combineString(LStr, UStr);
-LUPStr = combineString(LUStr, PStr);
-solution = U\c;
-opiCount = opiCount + n^2;
-solution = solution';
-time = toc;
-
-opsString = ['Number of Operations = ', num2str(opiCount)];
-timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
-newString = combineString(LUPStr, opsString);
-newString = combineString(newString, timeString);
-set(handles.lSysOutputText, 'string', newString);
+    
+    %solution = U\c;
+    inv(U);
+    solution = inv(U)*c;
+    opiCount = opiCount + n^2;
+    solution = solution';
+end
+    time = toc;
+    LStr = ['L = ', mat2str(L, 16)];
+    UStr = ['U = ', mat2str(U, 16)];
+    PStr = ['P = ', mat2str(P, 16)];
+if errFlag == true
+    LStr = combineString(errMsg, LStr);
+end
+    LUStr = combineString(LStr, UStr);
+    LUPStr = combineString(LUStr, PStr);
+    opsString = ['Number of Operations = ', num2str(opiCount)];
+    timeString = ['Elapsed Time = ', num2str(time), ' seconds'];
+    newString = combineString(LUPStr, opsString);
+    newString = combineString(newString, timeString);
+    set(handles.lSysOutputText, 'string', newString);
